@@ -1,6 +1,5 @@
-﻿using ColossalFramework.Plugins;
-using ColossalFramework.UI;
-using NetworkSkins.UI;
+﻿using ColossalFramework.UI;
+using NetworkSkins.Shared;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -37,7 +36,7 @@ namespace NetworkSkins.Pillars
             text.relativePosition = new Vector3(10, 50);
             text.text = "Bridge Pillar";
 
-            bridgePillarDropDown = NetworkSkins.UI.UIUtils.CreateDropDown(this);
+            bridgePillarDropDown = NetworkSkins.Shared.UIUtils.CreateDropDown(this);
             bridgePillarDropDown.relativePosition = new Vector3(10, 70);
             bridgePillarDropDown.width = 280;
 
@@ -52,7 +51,7 @@ namespace NetworkSkins.Pillars
             text2.relativePosition = new Vector3(10, 110);
             text2.text = "Middle Pillar";
 
-            middlePillarDropDown = NetworkSkins.UI.UIUtils.CreateDropDown(this);
+            middlePillarDropDown = NetworkSkins.Shared.UIUtils.CreateDropDown(this);
             middlePillarDropDown.relativePosition = new Vector3(10, 130);
             middlePillarDropDown.width = 280;
 

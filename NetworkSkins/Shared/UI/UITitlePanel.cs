@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace NetworkSkins.UI
+namespace NetworkSkins.Shared
 {
 
     // Shamelessly ripped from: https://github.com/justacid/Skylines-ExtendedPublicTransport/blob/master/ExtendedPublicTransportUI/UITitleContainer.cs

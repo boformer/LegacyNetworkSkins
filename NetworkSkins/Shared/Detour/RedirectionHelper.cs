@@ -26,7 +26,7 @@ using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace NetworkSkins.Detour
+namespace NetworkSkins.Shared
 {
 
     public struct RedirectCallsState

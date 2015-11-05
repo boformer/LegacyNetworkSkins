@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using NetworkSkins.Shared;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 
-namespace NetworkSkins.Detour
+namespace NetworkSkins.Props
 {
     public class NetInfoDetour : NetInfo
     {
@@ -60,7 +57,7 @@ namespace NetworkSkins.Detour
         protected override void LateUpdate()
         {
             ADebugger.instance.a_lateUpdate++;// mod
-            
+
             if (this.m_instanceID.IsEmpty)
             {
                 ADebugger.instance.a_lateUpdate2++;// mod

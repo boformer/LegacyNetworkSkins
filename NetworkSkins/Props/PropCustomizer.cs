@@ -2,7 +2,6 @@
 using ColossalFramework.Plugins;
 using ColossalFramework.UI;
 using ICities;
-using NetworkSkins.Detour;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

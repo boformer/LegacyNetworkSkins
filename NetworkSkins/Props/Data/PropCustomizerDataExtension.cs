@@ -1,5 +1,4 @@
 ﻿using ICities;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,8 +11,6 @@ namespace NetworkSkins.Props
 {
     public class PropCustomizerDataExtension : ISerializableDataExtension
     {
-        private static JsonSerializerSettings settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-        
         private const string SEGMENT_PROPS_DEF_ID = "NetworkSkins-PropCustomizerData";
         private const string SEGMENT_PROPS_MAP_ID = "NetworkSkins-SegmentPropsMap";
         

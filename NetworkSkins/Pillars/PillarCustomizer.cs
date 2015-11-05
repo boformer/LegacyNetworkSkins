@@ -4,7 +4,6 @@ using ColossalFramework.UI;
 using ICities;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 
 namespace NetworkSkins.Pillars

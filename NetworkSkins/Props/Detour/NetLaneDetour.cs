@@ -1,13 +1,10 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using NetworkSkins.Shared;
 using System.Reflection;
-using System.Text;
 using UnityEngine;
 
-namespace NetworkSkins.Detour
+namespace NetworkSkins.Props
 {
     public struct NetLaneDetour
     {
@@ -105,7 +102,7 @@ namespace NetworkSkins.Detour
                     // mod begin
                     var _this = NetManager.instance.m_lanes.m_buffer[laneID];
                     // mod end
-                    
+
                     NetLaneProps.Prop prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
@@ -196,13 +193,13 @@ namespace NetworkSkins.Detour
                         {
                             // mod begin
                             // randomized road trees (showcase)
-                            if (ADebugger.instance.trees != null) 
+                            if (ADebugger.instance.trees != null)
                             {
                                 var tree = ADebugger.instance.trees[(int)laneID % ADebugger.instance.trees.Length];
                                 finalTree = tree != null ? tree : finalTree;
                             }
                             // mod end
-                            
+
                             Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
                             for (int k = 1; k <= num2; k += 2)
                             {
@@ -238,7 +235,7 @@ namespace NetworkSkins.Detour
         public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, Color startColor, Color endColor, float startAngle, float endAngle, bool invert, int layerMask, Vector4 objectIndex, ref RenderManager.Instance data, ref int propIndex)
         {
             ADebugger.instance.a_renderInstance++;// mod
-            
+
             NetLaneProps laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
@@ -256,7 +253,7 @@ namespace NetworkSkins.Detour
                     // mod begin
                     var _this = NetManager.instance.m_lanes.m_buffer[laneID];
                     // mod end
-                    
+
                     NetLaneProps.Prop prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
@@ -474,7 +471,7 @@ namespace NetworkSkins.Detour
                                     finalTree = tree != null ? tree : finalTree;
                                 }
                                 // mod end
-                                
+
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
@@ -504,7 +501,7 @@ namespace NetworkSkins.Detour
         public void PopulateGroupData(ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, float startAngle, float endAngle, bool invert, bool terrainHeight, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool hasProps)
         {
             ADebugger.instance.a_populateGroupData++;// mod
-            
+
             NetLaneProps laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
@@ -631,7 +628,7 @@ namespace NetworkSkins.Detour
                                     finalTree = tree != null ? tree : finalTree;
                                 }
                                 // mod end
-                                
+
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
