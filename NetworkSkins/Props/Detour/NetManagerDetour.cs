@@ -52,7 +52,7 @@ namespace NetworkSkins.Props
             {
                 return;
             }
-            Singleton<RenderManager>.instance.UpdateInstance((uint)(32768 + segment));
+            Singleton<RenderManager>.instance.UpdateInstance((uint)(49152 + segment));
             if (updateGroup)
             {
                 NetInfo info = this.m_segments.m_buffer[(int)segment].Info;
