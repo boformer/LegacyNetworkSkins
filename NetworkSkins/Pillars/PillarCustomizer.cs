@@ -180,12 +180,17 @@ namespace NetworkSkins.Pillars
             {
                 return (type == PillarType.BRIDGE_PILLAR) ? pa.m_bridgePillarInfo : null;
             }
+            else
+            {
+                return null;
 
-            return null;
+            }
         }
 
         public List<BuildingInfo> GetAvailablePillars(NetInfo prefab, PillarType type)
         {
+            if (prefab == null) return null;
+            
             if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
             {
                 if (type == PillarType.MIDDLE_PILLAR)
@@ -203,6 +208,10 @@ namespace NetworkSkins.Pillars
                         if (!ra.m_doubleLength) return null;
                     }
                     else if (pa != null)
+                    {
+                        return null;
+                    }
+                    else
                     {
                         return null;
                     }
@@ -227,26 +236,28 @@ namespace NetworkSkins.Pillars
             }
         }
 
-        private bool FineRoadHeightsEnabled()
-        {
-            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
-            {
-                if (current.publishedFileID.AsUInt64 == 413678178uL && current.isEnabled) return true;
-            }
-            return false;
-        }
-
         public NetInfo GetElevatedPrefab(NetInfo prefab) 
         {
-            if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI) 
+            if (prefab == null)
             {
-                return prefab;
+                return null;
             }
-            else if (prefab.m_netAI is TrainTrackAI) 
+            else if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
+            {
+                if (prefab.name.Contains("Eleva"))
+                {
+                    return prefab;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (prefab.m_netAI is TrainTrackAI)
             {
                 return ((TrainTrackAI)prefab.m_netAI).m_elevatedInfo;
             }
-            else if (prefab.m_netAI is RoadAI) 
+            else if (prefab.m_netAI is RoadAI)
             {
                 return ((RoadAI)prefab.m_netAI).m_elevatedInfo;
             }
@@ -254,10 +265,54 @@ namespace NetworkSkins.Pillars
             {
                 return ((PedestrianPathAI)prefab.m_netAI).m_elevatedInfo;
             }
-            else 
+            else
             {
                 return null;
             }
+        }
+
+        public NetInfo GetBridgePrefab(NetInfo prefab)
+        {
+            if (prefab == null)
+            {
+                return null;
+            }
+            else if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
+            {
+                if (prefab.name.Contains("Bridge"))
+                {
+                    return prefab;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (prefab.m_netAI is TrainTrackAI)
+            {
+                return ((TrainTrackAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else if (prefab.m_netAI is RoadAI)
+            {
+                return ((RoadAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else if (prefab.m_netAI is PedestrianPathAI)
+            {
+                return ((PedestrianPathAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private bool FineRoadHeightsEnabled()
+        {
+            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+            {
+                if (current.publishedFileID.AsUInt64 == 413678178uL && current.isEnabled) return true;
+            }
+            return false;
         }
     }
 }
