@@ -186,6 +186,8 @@ namespace NetworkSkins.Pillars
 
         public List<BuildingInfo> GetAvailablePillars(NetInfo prefab, PillarType type)
         {
+            if (prefab == null) return null;
+            
             if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
             {
                 if (type == PillarType.MIDDLE_PILLAR)
