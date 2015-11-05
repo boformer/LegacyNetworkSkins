@@ -236,18 +236,28 @@ namespace NetworkSkins.Pillars
             }
         }
 
-        // TODO add GetBridgePrefab
         public NetInfo GetElevatedPrefab(NetInfo prefab) 
         {
-            if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI) 
+            if (prefab == null)
             {
-                return prefab;
+                return null;
             }
-            else if (prefab.m_netAI is TrainTrackAI) 
+            else if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
+            {
+                if (prefab.name.Contains("Eleva"))
+                {
+                    return prefab;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (prefab.m_netAI is TrainTrackAI)
             {
                 return ((TrainTrackAI)prefab.m_netAI).m_elevatedInfo;
             }
-            else if (prefab.m_netAI is RoadAI) 
+            else if (prefab.m_netAI is RoadAI)
             {
                 return ((RoadAI)prefab.m_netAI).m_elevatedInfo;
             }
@@ -255,7 +265,42 @@ namespace NetworkSkins.Pillars
             {
                 return ((PedestrianPathAI)prefab.m_netAI).m_elevatedInfo;
             }
-            else 
+            else
+            {
+                return null;
+            }
+        }
+
+        public NetInfo GetBridgePrefab(NetInfo prefab)
+        {
+            if (prefab == null)
+            {
+                return null;
+            }
+            else if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
+            {
+                if (prefab.name.Contains("Bridge"))
+                {
+                    return prefab;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            else if (prefab.m_netAI is TrainTrackAI)
+            {
+                return ((TrainTrackAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else if (prefab.m_netAI is RoadAI)
+            {
+                return ((RoadAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else if (prefab.m_netAI is PedestrianPathAI)
+            {
+                return ((PedestrianPathAI)prefab.m_netAI).m_bridgeInfo;
+            }
+            else
             {
                 return null;
             }
