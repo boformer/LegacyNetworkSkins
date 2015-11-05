@@ -180,8 +180,11 @@ namespace NetworkSkins.Pillars
             {
                 return (type == PillarType.BRIDGE_PILLAR) ? pa.m_bridgePillarInfo : null;
             }
+            else
+            {
+                return null;
 
-            return null;
+            }
         }
 
         public List<BuildingInfo> GetAvailablePillars(NetInfo prefab, PillarType type)
@@ -208,6 +211,10 @@ namespace NetworkSkins.Pillars
                     {
                         return null;
                     }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 
                 var availablePillars = new List<BuildingInfo>();
@@ -229,15 +236,7 @@ namespace NetworkSkins.Pillars
             }
         }
 
-        private bool FineRoadHeightsEnabled()
-        {
-            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
-            {
-                if (current.publishedFileID.AsUInt64 == 413678178uL && current.isEnabled) return true;
-            }
-            return false;
-        }
-
+        // TODO add GetBridgePrefab
         public NetInfo GetElevatedPrefab(NetInfo prefab) 
         {
             if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI) 
@@ -260,6 +259,15 @@ namespace NetworkSkins.Pillars
             {
                 return null;
             }
+        }
+
+        private bool FineRoadHeightsEnabled()
+        {
+            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+            {
+                if (current.publishedFileID.AsUInt64 == 413678178uL && current.isEnabled) return true;
+            }
+            return false;
         }
     }
 }
