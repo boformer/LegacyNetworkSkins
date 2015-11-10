@@ -58,7 +58,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ADebugger.cs" />
+    <Compile Include="Test.cs" />
+    <Compile Include="UI\UINetworkOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
+    <Compile Include="UI\UINetworkSkinsPanel.cs" />
     <Compile Include="Pillars\PillarCustomizer.cs" />
     <Compile Include="Pillars\UI\PillarCustomizerPanel.cs" />
     <Compile Include="Pillars\UI\PillarCustomizerPanelFineRoadHeights.cs" />
@@ -72,9 +75,9 @@
     <Compile Include="Props\Detour\NetInfoDetour.cs" />
     <Compile Include="Props\Detour\NetLaneDetour.cs" />
     <Compile Include="Props\Detour\NetManagerDetour.cs" />
-    <Compile Include="Shared\Detour\RedirectionHelper.cs" />
-    <Compile Include="Shared\UI\UITitlePanel.cs" />
-    <Compile Include="Shared\UI\UIUtils.cs" />
+    <Compile Include="Detour\RedirectionHelper.cs" />
+    <Compile Include="UI\UITitlePanel.cs" />
+    <Compile Include="UI\UIUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Props\UI\" />

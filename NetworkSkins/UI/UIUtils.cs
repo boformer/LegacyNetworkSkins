@@ -1,7 +1,7 @@
 ﻿using ColossalFramework.UI;
 using UnityEngine;
 
-namespace NetworkSkins.Shared
+namespace NetworkSkins.UI
 {
     public class UIUtils
     {
