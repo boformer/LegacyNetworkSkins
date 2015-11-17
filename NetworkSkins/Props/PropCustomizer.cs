@@ -20,6 +20,8 @@ namespace NetworkSkins.Props
         {
             instance = this;
 
+            return;
+
             NetInfoDetour.Deploy();
             NetLaneDetour.Deploy();
             NetManagerDetour.Deploy();
@@ -27,6 +29,8 @@ namespace NetworkSkins.Props
 
         public void OnLevelLoaded(LoadMode mode)
         {
+            return;
+            
             var trees = new List<TreeInfo>();
 
             for (uint i = 0; i < PrefabCollection<TreeInfo>.LoadedCount(); i++) 

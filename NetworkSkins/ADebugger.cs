@@ -15,8 +15,5 @@ namespace NetworkSkins
 
         // trees for the road tree randomizer (showcase)
         public TreeInfo[] trees = null;
-
-        // serialization test
-        public Props.PropCustomizer b_propCustomizer = null;
     }
 }

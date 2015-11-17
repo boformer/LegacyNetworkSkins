@@ -26,6 +26,8 @@ namespace NetworkSkins.Pillars
 
         public void OnLevelLoaded(LoadMode mode)
         {
+            return;
+            
             // Don't load if it's not a game
             if (mode != LoadMode.LoadGame && mode != LoadMode.NewGame) return;
 
@@ -86,6 +88,8 @@ namespace NetworkSkins.Pillars
 
         public void OnLevelUnloading()
         {
+            return;
+            
             // Restore bridge pillar defaults
             foreach (var prefab in defaultBridgePillars.Keys) 
             {

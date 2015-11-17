@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace NetworkSkins.UI
 {
-    public class UIUtils
+    public class UIUtil
     {
         public static UIDropDown CreateDropDown(UIComponent parent)
         {
