@@ -14,19 +14,20 @@ namespace NetworkSkins
         {
             get 
             {
-                return this.transform.parent.gameObject.GetComponent<UIComponent>().width - UINetworkSkinsPanel.PADDING * 2; 
+                return this.transform.parent.gameObject.GetComponent<UIComponent>().width; 
             }
         }
 
         public override void Awake()
         {
             base.Awake();
-
+            /*
             this.backgroundSprite = "SubcategoriesPanel";
             this.color = new Color32(0, 0, 255, 255);
-
+            */
             this.Initialize();
 
+            this.width = ParentWidth;
             this.FitChildrenVertically();
         }
     }

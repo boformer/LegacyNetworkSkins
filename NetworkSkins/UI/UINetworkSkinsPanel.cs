@@ -8,6 +8,7 @@ namespace NetworkSkins.UI
     {
         public const int PADDING_TOP = 9;
         public const int PADDING = 5;
+        public const int PAGES_PADDING = 10;
         public const int TAB_HEIGHT = 32;
         public const int PAGE_HEIGHT = 300;
         public const int WIDTH = 310;
@@ -29,14 +30,13 @@ namespace NetworkSkins.UI
             this.relativePosition = new Vector3(0f, 440f);
             this.width = WIDTH + 2 * PADDING;
             //this.padding = new RectOffset(PADDING, 0, PADDING, 0);
-            this.autoLayoutDirection = LayoutDirection.Vertical;
-            this.autoLayout = true;
 
             titleBar = this.AddUIComponent<UIDragHandle>();
             titleBar.name = "TitlePanel";
             titleBar.width = this.width;
             titleBar.height = TAB_HEIGHT + PADDING_TOP;
             titleBar.target = this;
+            titleBar.relativePosition = new Vector3(0, 0);
 
             tabstrip = titleBar.AddUIComponent<UITabstrip>();
             tabstrip.relativePosition = new Vector3(PADDING, PADDING_TOP, 0);
@@ -45,7 +45,8 @@ namespace NetworkSkins.UI
             tabstrip.tabPages = this.AddUIComponent<UITabContainer>();
             tabstrip.tabPages.width = this.width;
             tabstrip.tabPages.height = PAGE_HEIGHT;
-            tabstrip.tabPages.padding = new RectOffset(PADDING, PADDING, PADDING, PADDING);//?
+            tabstrip.tabPages.relativePosition = new Vector3(0, titleBar.height);
+            tabstrip.tabPages.padding = new RectOffset(PAGES_PADDING, PAGES_PADDING, PAGES_PADDING, PAGES_PADDING);//?
             tabstrip.padding.right = 0;
             tabstrip.eventTabIndexChanged += tabstrip_eventTabIndexChanged;
 
@@ -84,6 +85,7 @@ namespace NetworkSkins.UI
                 panel.autoLayoutDirection = LayoutDirection.Vertical;
                 panel.autoLayoutPadding = new RectOffset(0, 0, 0, PADDING);
                 panel.autoLayout = true;
+                panel.isVisible = false;
                 //panel.size = new Vector2(WIDTH, 50 * i);
                 //panel.color = new Color32(0, 0, (byte) (70 * i), 255);
             }
@@ -94,11 +96,9 @@ namespace NetworkSkins.UI
             bridgePage = tabstrip.tabPages.components[3] as UIPanel;
 
             elevatedPage.AddUIComponent<PillarNetworkOption>();
+            bridgePage.AddUIComponent<PillarNetworkOption>();
 
             tabstrip.ShowTab("Ground");
-
-            
-
             this.FitChildren();
         }
 
