@@ -1,15 +1,17 @@
-﻿using ColossalFramework;
-using ColossalFramework.Packaging;
+﻿using ColossalFramework.Packaging;
+using ColossalFramework.Plugins;
+using ColossalFramework.UI;
 using ICities;
 using NetworkSkins.Net;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace NetworkSkins.Pillars
 {
-    public class PillarManager : ILoadingExtension
+    public class PillarCustomizer : ILoadingExtension
     {
-        public static PillarManager instance;
+        public static PillarCustomizer instance;
         
         private readonly List<BuildingInfo> pillarBuildings = new List<BuildingInfo>();
 
@@ -25,9 +27,9 @@ namespace NetworkSkins.Pillars
         {
             // Don't load if it's not a game
             if (mode != LoadMode.LoadGame && mode != LoadMode.NewGame) return;
-            
+
             // Save defaults
-            for (uint i = 0; i < PrefabCollection<NetInfo>.LoadedCount(); i++)
+            for(uint i = 0; i < PrefabCollection<NetInfo>.LoadedCount(); i++)
             {
                 var prefab = PrefabCollection<NetInfo>.GetLoaded(i);
 
@@ -56,17 +58,19 @@ namespace NetworkSkins.Pillars
 
                 // TODO parse the config file
 
-                if (File.Exists(pillarConfigPath))
+                if (File.Exists(pillarConfigPath)) 
                 {
                     pillarBuildings.Add(prefab);
                 }
             }
+
+            // TODO Detect No Pillars and hide its "pillars" button
         }
 
         public void OnLevelUnloading()
         {
             // Restore bridge pillar defaults
-            foreach (var prefab in defaultBridgePillars.Keys)
+            foreach (var prefab in defaultBridgePillars.Keys) 
             {
                 SetPillar(prefab, PillarType.BRIDGE_PILLAR, defaultBridgePillars[prefab]);
             }
@@ -78,12 +82,50 @@ namespace NetworkSkins.Pillars
                 SetPillar(prefab, PillarType.MIDDLE_PILLAR, defaultMiddlePillars[prefab]);
             }
             defaultMiddlePillars.Clear();
-
-            // Destroy GUI
-            Object.Destroy(uiPanel);
         }
 
-        private void SaveDefaults(NetInfo prefab)
+        public void OnReleased()
+        {
+            instance = null;
+        }
+
+        public BuildingInfo GetDefaultPillar(NetInfo prefab, PillarType type) 
+        {
+            if(type == PillarType.BRIDGE_PILLAR)
+                return defaultBridgePillars[prefab];
+            else
+                return defaultMiddlePillars[prefab];
+        }
+
+        public void SetPillar(NetInfo prefab, PillarType type, BuildingInfo pillar) 
+        {
+            var netAI = prefab.m_netAI;
+            
+            var ta = netAI as TrainTrackBridgeAI;
+            var ra = netAI as RoadBridgeAI;
+            var pa = netAI as PedestrianBridgeAI;
+
+            if (ta != null)
+            {
+                if (type == PillarType.BRIDGE_PILLAR) 
+                    ta.m_bridgePillarInfo = pillar;
+                else
+                    ta.m_middlePillarInfo = pillar;
+            }
+            else if (ra != null)
+            {
+                if (type == PillarType.BRIDGE_PILLAR)
+                    ra.m_bridgePillarInfo = pillar;
+                else
+                    ra.m_middlePillarInfo = pillar;
+            }
+            else if (pa != null)
+            {
+                pa.m_bridgePillarInfo = pillar;
+            }
+        }
+
+        private void SaveDefaults(NetInfo prefab) 
         {
             BuildingInfo bridgePillar = GetActivePillar(prefab, PillarType.BRIDGE_PILLAR);
             BuildingInfo middlePillar = GetActivePillar(prefab, PillarType.MIDDLE_PILLAR);
@@ -97,11 +139,10 @@ namespace NetworkSkins.Pillars
             if (middlePillar != null && !pillarBuildings.Contains(middlePillar)) pillarBuildings.Add(middlePillar);
         }
 
-
-        public BuildingInfo GetActivePillar(NetInfo prefab, PillarType type)
+        public BuildingInfo GetActivePillar(NetInfo prefab, PillarType type) 
         {
             if (prefab == null) return null;
-
+            
             var ta = prefab.m_netAI as TrainTrackBridgeAI;
             var ra = prefab.m_netAI as RoadBridgeAI;
             var pa = prefab.m_netAI as PedestrianBridgeAI;
@@ -121,9 +162,56 @@ namespace NetworkSkins.Pillars
             else
             {
                 return null;
-
             }
         }
 
+        public List<BuildingInfo> GetAvailablePillars(NetInfo prefab, PillarType pillarType)
+        {
+            if (prefab == null) return null;
+            
+            if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
+            {
+                if (pillarType == PillarType.MIDDLE_PILLAR)
+                {
+                    var ta = prefab.m_netAI as TrainTrackBridgeAI;
+                    var ra = prefab.m_netAI as RoadBridgeAI;
+                    var pa = prefab.m_netAI as PedestrianBridgeAI;
+
+                    if (ta != null)
+                    {
+                        if (!ta.m_doubleLength) return null;
+                    }
+                    else if (ra != null)
+                    {
+                        if (!ra.m_doubleLength) return null;
+                    }
+                    else if (pa != null)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                
+                var availablePillars = new List<BuildingInfo>();
+
+                // no pillars
+                availablePillars.Add(null);
+
+                // TODO only return relevant pillars
+                foreach(var pillar in pillarBuildings) 
+                {
+                    availablePillars.Add(pillar);
+                }
+
+                return availablePillars;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
