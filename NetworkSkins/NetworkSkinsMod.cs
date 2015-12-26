@@ -1,6 +1,8 @@
-﻿using ColossalFramework.UI;
+﻿using ColossalFramework.Plugins;
+using ColossalFramework.UI;
 using ICities;
 using NetworkSkins.UI;
+using NetworkSkins.Net;
 using UnityEngine;
 
 namespace NetworkSkins
@@ -8,15 +10,17 @@ namespace NetworkSkins
     public class NetworkSkinsMod : LoadingExtensionBase, IUserMod
     {
         private UINetworkSkinsPanel panel;
-        
+
         public string Name
         {
-            get {
+            get
+            {
                 if (panel == null)
                 {
                     panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
                 }
-                return "Network Skins"; }
+                return "Network Skins";
+            }
         }
         public string Description
         {
@@ -28,9 +32,9 @@ namespace NetworkSkins
             base.OnLevelLoaded(mode);
 
             // GUI
-            if (panel == null) 
-            { 
-                panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel; 
+            if (panel == null)
+            {
+                panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
             }
             panel.isVisible = true;
         }
@@ -39,9 +43,44 @@ namespace NetworkSkins
         {
             base.OnLevelUnloading();
 
-            if (panel != null) 
-            { 
-                Object.Destroy(panel); 
+            if (panel != null)
+            {
+                Object.Destroy(panel);
+            }
+        }
+
+        // Support for FineRoadHeights and Vanilla NetTool
+        public static INetToolWrapper GenerateNetToolWrapper()
+        {
+            if (!FineRoadHeightsEnabled)
+            {
+                return new NetToolWrapperVanilla();
+            }
+            else
+            {
+                return new NetToolWrapperFineRoadHeights();
+            }
+        }
+
+        public static string GetModPath()
+        {
+            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+            {
+                // TODO check for workshop id
+                if ((current.name.Contains("Network Skins"))) return current.modPath;
+            }
+            return null;
+        }
+
+        private static bool FineRoadHeightsEnabled
+        {
+            get
+            {
+                foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+                {
+                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("Fine Road Heights")) && current.isEnabled) return true;
+                }
+                return false;
             }
         }
     }

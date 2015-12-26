@@ -37,6 +37,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\libs\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="CimTools">
+      <HintPath>..\libs\CimTools.dll</HintPath>
+    </Reference>
     <Reference Include="ColossalManaged, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\libs\ColossalManaged.dll</HintPath>
@@ -58,7 +61,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ADebugger.cs" />
-    <Compile Include="Pillars\PillarNetworkOption.cs" />
+    <Compile Include="Meshes\UIBridgeTypeOption.cs" />
+    <Compile Include="Net\NetToolWrapperFineRoadHeights.cs" />
+    <Compile Include="Net\INetToolWrapper.cs" />
+    <Compile Include="Net\NetToolWrapperVanilla.cs" />
+    <Compile Include="Net\NetType.cs" />
+    <Compile Include="Net\NetUtil.cs" />
+    <Compile Include="Pillars\UIPillarOption.cs" />
+    <Compile Include="Props\UILightOption.cs" />
+    <Compile Include="Props\UITreeOption.cs" />
     <Compile Include="UI\UINetworkOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
     <Compile Include="UI\UINetworkSkinsPanel.cs" />
@@ -66,7 +77,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\UIUtil.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="libs\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(ProjectName)"

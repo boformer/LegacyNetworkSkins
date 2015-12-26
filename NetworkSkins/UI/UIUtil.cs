@@ -5,6 +5,33 @@ namespace NetworkSkins.UI
 {
     public class UIUtil
     {
+        private const float LABEL_RELATIVE_WIDTH = .30f;
+        private const float COLUMN_PADDING = 5f;
+
+        public static UIDropDown CreateDropDownWithLabel(UIComponent parent, string labelText, float posY, float width) 
+        {
+            var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
+            
+            UIDropDown dropDown = UIUtil.CreateDropDown(parent);
+            dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, posY);
+            dropDown.width = width - labelWidth - COLUMN_PADDING;
+
+            AddLabel(parent, labelText, labelWidth, dropDown.height, posY);
+
+            return dropDown;
+        }
+        private static void AddLabel(UIComponent parent, string text, float width, float dropDownHeight, float y)
+        {
+            var label = parent.AddUIComponent<UILabel>();
+            label.text = text;
+            label.textScale = .85f;
+            label.textColor = new Color32(200, 200, 200, 255);
+            label.autoSize = false;
+            label.width = width;
+            label.textAlignment = UIHorizontalAlignment.Right;
+            label.relativePosition = new Vector3(0, y + Mathf.Round((dropDownHeight - label.height) / 2));
+        }
+
         public static UIDropDown CreateDropDown(UIComponent parent)
         {
             UIDropDown dropDown = parent.AddUIComponent<UIDropDown>();

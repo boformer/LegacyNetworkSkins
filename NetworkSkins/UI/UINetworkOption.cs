@@ -21,10 +21,6 @@ namespace NetworkSkins
         public override void Awake()
         {
             base.Awake();
-            /*
-            this.backgroundSprite = "SubcategoriesPanel";
-            this.color = new Color32(0, 0, 255, 255);
-            */
             this.Initialize();
 
             this.width = ParentWidth;
