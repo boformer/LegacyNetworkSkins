@@ -131,7 +131,7 @@ namespace NetworkSkins.UI
         {
             try
             {
-                bool atlasSuccess = SpriteUtilities.InitialiseAtlas("sprites.png", ATLAS); // TODO add mod path
+                bool atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.GetModPath(), "sprites.png"), ATLAS);
 
                 if (atlasSuccess)
                 {

@@ -4,6 +4,7 @@ using ICities;
 using NetworkSkins.UI;
 using NetworkSkins.Net;
 using UnityEngine;
+using System;
 
 namespace NetworkSkins
 {
@@ -15,10 +16,13 @@ namespace NetworkSkins
         {
             get
             {
+                /*
+                // Code for GUI debugging
                 if (panel == null)
                 {
                     panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
                 }
+                */
                 return "Network Skins";
             }
         }
@@ -30,6 +34,9 @@ namespace NetworkSkins
         public override void OnLevelLoaded(LoadMode mode)
         {
             base.OnLevelLoaded(mode);
+
+            // Don't load if it's not a game
+            if (!CheckLoadMode(mode)) return;
 
             // GUI
             if (panel == null)
@@ -45,7 +52,7 @@ namespace NetworkSkins
 
             if (panel != null)
             {
-                Object.Destroy(panel);
+                UnityEngine.Object.Destroy(panel);
             }
         }
 
@@ -69,7 +76,12 @@ namespace NetworkSkins
                 // TODO check for workshop id
                 if ((current.name.Contains("Network Skins"))) return current.modPath;
             }
-            return null;
+            throw new Exception("Network Skins: Mod Path not found!");
+        }
+
+        public static bool CheckLoadMode(LoadMode mode) 
+        {
+            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame;
         }
 
         private static bool FineRoadHeightsEnabled

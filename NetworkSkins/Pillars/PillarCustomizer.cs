@@ -26,7 +26,7 @@ namespace NetworkSkins.Pillars
         public void OnLevelLoaded(LoadMode mode)
         {
             // Don't load if it's not a game
-            if (mode != LoadMode.LoadGame && mode != LoadMode.NewGame) return;
+            if (!NetworkSkinsMod.CheckLoadMode(mode)) return;
 
             // Save defaults
             for(uint i = 0; i < PrefabCollection<NetInfo>.LoadedCount(); i++)
@@ -91,10 +91,11 @@ namespace NetworkSkins.Pillars
 
         public BuildingInfo GetDefaultPillar(NetInfo prefab, PillarType type) 
         {
-            if(type == PillarType.BRIDGE_PILLAR)
-                return defaultBridgePillars[prefab];
-            else
-                return defaultMiddlePillars[prefab];
+            var map = (type == PillarType.BRIDGE_PILLAR) ? defaultBridgePillars : defaultMiddlePillars;
+            
+            BuildingInfo pillar;
+            if (!map.TryGetValue(prefab, out pillar)) return null;
+            return pillar;
         }
 
         public void SetPillar(NetInfo prefab, PillarType type, BuildingInfo pillar) 
