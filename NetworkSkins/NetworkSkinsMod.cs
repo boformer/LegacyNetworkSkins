@@ -74,9 +74,9 @@ namespace NetworkSkins
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
             {
                 // TODO check for workshop id
-                if ((current.name.Contains("Network Skins"))) return current.modPath;
+                if ((current.name.Contains("NetworkSkins"))) return current.modPath;
             }
-            throw new Exception("Network Skins: Mod Path not found!");
+            return "";
         }
 
         public static bool CheckLoadMode(LoadMode mode) 
@@ -90,7 +90,7 @@ namespace NetworkSkins
             {
                 foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
                 {
-                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("Fine Road Heights")) && current.isEnabled) return true;
+                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("FineRoadHeights")) && current.isEnabled) return true;
                 }
                 return false;
             }
