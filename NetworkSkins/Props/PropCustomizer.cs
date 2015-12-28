@@ -15,15 +15,15 @@ namespace NetworkSkins.Props
     {
         public static PropCustomizer instance;
 
-        public PropCustomizerData data;
-        public Dictionary<uint, SegmentPropDef> segmentPropMap = null;
+        private readonly List<SegmentPropDef> segmentPropDefs = new List<SegmentPropDef>();
+        private readonly Dictionary<NetInfo, SegmentPropDef> activeSegmentDefs = new Dictionary<NetInfo, SegmentPropDef>();
+
+        public SegmentPropDef[] segmentPropMap = null;
 
         // TODO replace with list, compile LaneProps
-        public TreeInfo[] networkTrees = null;
+        public TreeInfo[] availableTrees = null;
 
-        private readonly Dictionary<NetInfo, TreeInfo> activeLeftTrees = new Dictionary<NetInfo, TreeInfo>();
-        private readonly Dictionary<NetInfo, TreeInfo> activeMiddleTrees = new Dictionary<NetInfo, TreeInfo>();
-        private readonly Dictionary<NetInfo, TreeInfo> activeRightTrees = new Dictionary<NetInfo, TreeInfo>();
+
 
         public void OnCreated(ILoading loading)
         {
@@ -36,35 +36,39 @@ namespace NetworkSkins.Props
 
         public void OnLevelLoaded(LoadMode mode)
         {
+            // Don't load if it's not a game
+            if (!NetworkSkinsMod.CheckLoadMode(mode)) return;
+            
             NetEventManager.instance.eventSegmentCreate += OnSegmentCreate;
             NetEventManager.instance.eventSegmentRelease += OnSegmentRelease;
             NetEventManager.instance.eventSegmentTransferData += OnSegmentTransferData;
 
+            if (segmentPropMap == null)
+            {
+                segmentPropMap = new SegmentPropDef[NetManager.instance.m_segments.m_size];
+            }
+
             var trees = new List<TreeInfo>();
+
+            // no trees
+            trees.Add(null);
 
             for (uint i = 0; i < PrefabCollection<TreeInfo>.LoadedCount(); i++) 
             {
                 TreeInfo prefab = PrefabCollection<TreeInfo>.GetLoaded(i);
 
                 if (prefab == null) continue;
-                if (prefab.m_variations != null && prefab.m_variations.Length > 0) continue;
+                if (prefab.m_variations != null && prefab.m_variations.Length > 0) continue; // TODO remove this line?
 
                 trees.Add(prefab);
             }
 
-            networkTrees = trees.ToArray();
+            // TODO search for prefabs for deserialized SegmentPropDefs
 
+            availableTrees = trees.ToArray();
+
+            // DEBUG access - remove later!
             ADebugger.instance.b_propCustomizer = this;
-
-            if(data == null) 
-            {
-                Debug.LogWarning("prop data is null!");
-
-                data = new PropCustomizerData();
-                data.SegmentPropDefs.Add(new SegmentPropDef { StreetLight = "Test Light", DisplayDecals = false });
-                data.SegmentPropDefs.Add(new SegmentPropDef { Tree0 = "A Tree", Tree1 = "A different tree", DisplayDecals = true });
-                data.SegmentPropDefs.Add(new SegmentPropDef { });
-            }
         }
 
         public void OnLevelUnloading()
@@ -73,10 +77,18 @@ namespace NetworkSkins.Props
             NetEventManager.instance.eventSegmentCreate -= OnSegmentRelease;
             NetEventManager.instance.eventSegmentTransferData -= OnSegmentTransferData;
 
-            networkTrees = null;
-            activeLeftTrees.Clear();
-            activeMiddleTrees.Clear();
-            activeRightTrees.Clear();
+            segmentPropDefs.Clear();
+
+            if (segmentPropMap != null)
+            {
+                for (int i = 0; i < segmentPropMap.Length; i++) 
+                {
+                    segmentPropMap[i] = null;
+                }
+            }
+
+            availableTrees = null;
+            activeSegmentDefs.Clear();
 
             ADebugger.instance.b_propCustomizer = null;
         }
@@ -97,23 +109,34 @@ namespace NetworkSkins.Props
                     if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
                         foreach (var laneProp in lane.m_laneProps.m_props)
                             if (laneProp != null)
-                                if (laneProp.m_tree != null) return true;
+                                if (laneProp.m_finalTree != null) return true;
             return false;
         }
 
         public List<TreeInfo> GetAvailableTrees(NetInfo prefab)
         {
-            return new List<TreeInfo>(networkTrees);
+            return new List<TreeInfo>(availableTrees);
         }
 
         public TreeInfo GetActiveTree(NetInfo prefab, LanePosition position)
         {
-            var map = GetActiveTreeMap(position);
+            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
+            var flag = GetTreeFeatureFlag(position);
 
-            TreeInfo activeTree;
-            if (!map.TryGetValue(prefab, out activeTree)) return GetDefaultTree(prefab, position);
-
-            return activeTree;
+            if ((def.features & flag) == 0)
+            {
+                return GetDefaultTree(prefab, position);
+            }
+            else
+            {
+                switch (position)
+                {
+                    case LanePosition.LEFT: return def.treeLeftPrefab;
+                    case LanePosition.MIDDLE: return def.treeMiddlePrefab;
+                    case LanePosition.RIGHT: return def.treeRightPrefab;
+                    default: throw new ArgumentOutOfRangeException("position");
+                }
+            }
         }
 
         public TreeInfo GetDefaultTree(NetInfo prefab, LanePosition position)
@@ -124,44 +147,101 @@ namespace NetworkSkins.Props
                     if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
                         foreach (var laneProp in lane.m_laneProps.m_props)
                             if (laneProp != null)
-                                if (laneProp.m_tree != null) return laneProp.m_tree;
+                                if (laneProp.m_finalTree != null) return laneProp.m_finalTree;
             return null;
         }
 
         public void SetTree(NetInfo prefab, LanePosition position, TreeInfo tree)
         {
-            var map = GetActiveTreeMap(position);
+            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
+            var flag = GetTreeFeatureFlag(position);
+
+            string treeName;
 
             if (tree == GetDefaultTree(prefab, position))
-                map.Remove(prefab);
+            {
+                def.features = (def.features & ~flag);
+
+                tree = null;
+                treeName = null;
+            }
             else
-                map[prefab] = tree;
+            {
+                def.features = (def.features | flag);
+
+                treeName = tree == null ? null : tree.name;
+            }
+
+            switch (position)
+            {
+                case LanePosition.LEFT: def.treeLeftPrefab = tree; def.treeLeft = treeName; break;
+                case LanePosition.MIDDLE: def.treeMiddlePrefab = tree; def.treeMiddle = treeName; break;
+                case LanePosition.RIGHT: def.treeRightPrefab = tree; def.treeRight = treeName; break;
+                default: throw new ArgumentOutOfRangeException("position");
+            }
+
+            if (def.features == 0)
+            {
+                activeSegmentDefs.Remove(prefab);
+                return;
+            }
+            else
+            {
+                var index = segmentPropDefs.IndexOf(def);
+                if (index < 0)
+                {
+                    segmentPropDefs.Add(def);
+                    activeSegmentDefs[prefab] = def;
+                }
+                else
+                {
+                    def = segmentPropDefs[index];
+                    activeSegmentDefs[prefab] = def;
+                }
+            }
         }
 
-        private Dictionary<NetInfo, TreeInfo> GetActiveTreeMap(LanePosition position) 
+        private SegmentPropDef GetSegmentPropDef(NetInfo prefab) 
         {
-            switch (position) 
+            SegmentPropDef def;
+            activeSegmentDefs.TryGetValue(prefab, out def);
+            return def;
+        }
+
+        private SegmentPropDef.Features GetTreeFeatureFlag(LanePosition position) 
+        {
+            switch (position)
             {
-                case LanePosition.LEFT:   return activeLeftTrees;
-                case LanePosition.MIDDLE: return activeMiddleTrees;
-                case LanePosition.RIGHT:  return activeRightTrees;
+                case LanePosition.LEFT:   return SegmentPropDef.Features.TREE_LEFT;
+                case LanePosition.MIDDLE: return SegmentPropDef.Features.TREE_MIDDLE;
+                case LanePosition.RIGHT:  return SegmentPropDef.Features.TREE_RIGHT;
                 default: throw new ArgumentOutOfRangeException("position");
             }
         }
 
-
         public void OnSegmentCreate(ushort segment)
         {
+            var prefab = NetManager.instance.m_segments.m_buffer[segment].Info;
+            var def = GetSegmentPropDef(prefab);
+            segmentPropMap[segment] = def;
+            
             Debug.LogFormat("Segment {0} created!", segment);
+
+            if (def == null) Debug.Log("Def is null!");
+            else Debug.Log(prefab.name + ": " + def);
         }
 
         public void OnSegmentRelease(ushort segment)
         {
+            segmentPropMap[segment] = null;
+            
             Debug.LogFormat("Segment {0} released!", segment);
         }
 
         public void OnSegmentTransferData(ushort oldSegment, ushort newSegment)
         {
+            segmentPropMap[newSegment] = segmentPropMap[oldSegment];
+
             Debug.LogFormat("Transfer data from {0} to {1}!", oldSegment, newSegment);
         }
     }

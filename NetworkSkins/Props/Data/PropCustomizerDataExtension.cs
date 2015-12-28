@@ -25,7 +25,7 @@ namespace NetworkSkins.Props
         }
 
         public void OnLoadData()
-        {
+        {/*
             try 
             {
                 PropCustomizerData propData = null;
@@ -54,11 +54,11 @@ namespace NetworkSkins.Props
             {
                 Debug.LogError("Error during load PropCustomizer data: " + e.Message);
                 Debug.LogException(e);
-            }
+            }*/
         }
 
         public void OnSaveData()
-        {
+        {/*
             try
             {
                 if (gameData != null) 
@@ -98,7 +98,7 @@ namespace NetworkSkins.Props
             {
                 Debug.LogError("Error during save PropCustomizer data: " + e.Message);
                 Debug.LogException(e);
-            }
+            }*/
         }
 
         public void OnReleased()

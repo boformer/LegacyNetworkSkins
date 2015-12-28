@@ -189,17 +189,45 @@ namespace NetworkSkins.Props
                             }
                         }
                         TreeInfo finalTree = prop.m_finalTree;
+
+                        // mod begin
+                        // custom road trees
+                        if (finalTree != null) 
+                        {
+                            var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                            if (segmentPropMap != null)
+                            {
+                                var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                if (def != null)
+                                {
+                                    if (laneInfo.m_position < 0) // Left Trees
+                                    {
+                                        if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
+                                        {
+                                            finalTree = def.treeLeftPrefab;
+                                        }
+                                    }
+                                    else if (laneInfo.m_position == 0) // Middle Trees
+                                    {
+                                        if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
+                                        {
+                                            finalTree = def.treeMiddlePrefab;
+                                        }
+                                    }
+                                    else if (laneInfo.m_position > 0) // Right Trees
+                                    {
+                                        if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
+                                        {
+                                            finalTree = def.treeRightPrefab;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // mod end
+
                         if (finalTree != null)
                         {
-                            // mod begin
-                            // randomized road trees (showcase)
-                            if (PropCustomizer.instance.networkTrees != null)
-                            {
-                                var tree = PropCustomizer.instance.networkTrees[(int)laneID % PropCustomizer.instance.networkTrees.Length];
-                                finalTree = tree != null ? tree : finalTree;
-                            }
-                            // mod end
-
                             Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
                             for (int k = 1; k <= num2; k += 2)
                             {
@@ -357,17 +385,45 @@ namespace NetworkSkins.Props
                                 }
                             }
                             TreeInfo finalTree = prop.m_finalTree;
+
+                            // mod begin
+                            // custom road trees
+                            if (finalTree != null)
+                            {
+                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                if (segmentPropMap != null)
+                                {
+                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                    if (def != null)
+                                    {
+                                        if (laneInfo.m_position < 0) // Left Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
+                                            {
+                                                finalTree = def.treeLeftPrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position == 0) // Middle Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
+                                            {
+                                                finalTree = def.treeMiddlePrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position > 0) // Right Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
+                                            {
+                                                finalTree = def.treeRightPrefab;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // mod end
+
                             if (finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0)
                             {
-                                // mod begin
-                                // randomized road trees (showcase)
-                                if (PropCustomizer.instance.networkTrees != null)
-                                {
-                                    var tree = PropCustomizer.instance.networkTrees[(int)laneID % PropCustomizer.instance.networkTrees.Length];
-                                    finalTree = tree != null ? tree : finalTree;
-                                }
-                                // mod end
-
                                 Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
                                 for (int k = 1; k <= num2; k += 2)
                                 {
@@ -461,17 +517,45 @@ namespace NetworkSkins.Props
                                 }
                             }
                             TreeInfo finalTree = prop.m_finalTree;
+
+                            // mod begin
+                            // custom road trees
                             if (finalTree != null)
                             {
-                                // mod begin
-                                // randomized road trees (showcase)
-                                if (PropCustomizer.instance.networkTrees != null)
+                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                if (segmentPropMap != null)
                                 {
-                                    var tree = PropCustomizer.instance.networkTrees[(int)laneID % PropCustomizer.instance.networkTrees.Length];
-                                    finalTree = tree != null ? tree : finalTree;
+                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                    if (def != null)
+                                    {
+                                        if (laneInfo.m_position < 0) // Left Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
+                                            {
+                                                finalTree = def.treeLeftPrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position == 0) // Middle Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
+                                            {
+                                                finalTree = def.treeMiddlePrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position > 0) // Right Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
+                                            {
+                                                finalTree = def.treeRightPrefab;
+                                            }
+                                        }
+                                    }
                                 }
-                                // mod end
+                            }
+                            // mod end
 
+                            if (finalTree != null)
+                            {
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
@@ -618,17 +702,45 @@ namespace NetworkSkins.Props
                                 }
                             }
                             TreeInfo finalTree = prop.m_finalTree;
+
+                            // mod begin
+                            // custom road trees
                             if (finalTree != null)
                             {
-                                // mod begin
-                                // randomized road trees (showcase)
-                                if (PropCustomizer.instance.networkTrees != null)
+                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                if (segmentPropMap != null)
                                 {
-                                    var tree = PropCustomizer.instance.networkTrees[(int)laneID % PropCustomizer.instance.networkTrees.Length];
-                                    finalTree = tree != null ? tree : finalTree;
+                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                    if (def != null)
+                                    {
+                                        if (laneInfo.m_position < 0) // Left Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
+                                            {
+                                                finalTree = def.treeLeftPrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position == 0) // Middle Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
+                                            {
+                                                finalTree = def.treeMiddlePrefab;
+                                            }
+                                        }
+                                        else if (laneInfo.m_position > 0) // Right Trees
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
+                                            {
+                                                finalTree = def.treeRightPrefab;
+                                            }
+                                        }
+                                    }
                                 }
-                                // mod end
+                            }
+                            // mod end
 
+                            if (finalTree != null)
+                            {
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
