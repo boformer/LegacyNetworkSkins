@@ -13,7 +13,7 @@ namespace NetworkSkins
         public int a_populateGroupData = 0;
         public int a_updateSegmentRenderer = 0;
 
-        // trees for the road tree randomizer (showcase)
-        public TreeInfo[] trees = null;
+        // serialization test
+        public Props.PropCustomizer b_propCustomizer = null;
     }
 }

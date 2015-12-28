@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColossalFramework.Plugins;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,6 +40,31 @@ namespace NetworkSkins.Net
             }
 
             return subPrefabs;
+        }
+
+        // Support for FineRoadHeights and Vanilla NetTool
+        public static INetToolWrapper GenerateNetToolWrapper()
+        {
+            if (!FineRoadHeightsEnabled)
+            {
+                return new NetToolWrapperVanilla();
+            }
+            else
+            {
+                return new NetToolWrapperFineRoadHeights();
+            }
+        }
+
+        private static bool FineRoadHeightsEnabled
+        {
+            get
+            {
+                foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+                {
+                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("FineRoadHeights")) && current.isEnabled) return true;
+                }
+                return false;
+            }
         }
     }
 }

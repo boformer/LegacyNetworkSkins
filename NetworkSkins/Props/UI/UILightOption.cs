@@ -17,7 +17,7 @@ namespace NetworkSkins.Props
 
         public override void Populate(NetInfo prefab)
         {
-            Debug.Log("LightOption populate: " + prefab.name);
+            //Debug.Log("LightOption populate: " + prefab.name);
             //throw new System.NotImplementedException();
         }
     }

@@ -101,10 +101,9 @@ namespace NetworkSkins.UI
                 netTypePages[i] = page;
             }
             
-            tabstrip.ShowTab("Ground");
             this.FitChildren();
 
-            netToolWrapper = NetworkSkinsMod.GenerateNetToolWrapper();
+            netToolWrapper = NetUtil.GenerateNetToolWrapper();
             if (netToolWrapper == null) throw new Exception("NetworkSkins Error: NetToolWrapper is null!");
 
             // Add some example options
@@ -117,6 +116,8 @@ namespace NetworkSkins.UI
             GetPage(NetType.BRIDGE).AddUIComponent<UILightOption>();
             GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>();
             GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();
+
+            tabstrip.selectedIndex = (int)NetType.GROUND;
         }
 
         private UIPanel GetPage(NetType netType) 
@@ -131,6 +132,8 @@ namespace NetworkSkins.UI
         {
             try
             {
+                if (SpriteUtilities.GetAtlas(ATLAS) != null) return;
+
                 bool atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.GetModPath(), "sprites.png"), ATLAS);
 
                 if (atlasSuccess)

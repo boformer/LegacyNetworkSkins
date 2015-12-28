@@ -46,7 +46,7 @@ namespace NetworkSkins.Pillars
             active = true;
         }
 
-        internal bool PopulateDropDown(PillarType type)
+        private bool PopulateDropDown(PillarType type)
         {
             var pillarDropDown = (type == PillarType.BRIDGE_PILLAR ? bridgePillarDropDown : middlePillarDropDown);
             
@@ -64,17 +64,7 @@ namespace NetworkSkins.Pillars
 
                 foreach (var pillar in pillars)
                 {
-                    string itemName = (pillar == null ? "None" : pillar.name);
-
-                    var index1 = itemName.IndexOf('.');
-                    if (index1 > -1) itemName = itemName.Substring(index1 + 1);
-
-                    var index2 = itemName.IndexOf("_Data");
-                    if (index2 > -1) itemName = itemName.Substring(0, index2);
-
-                    itemName = AddSpacesToSentence(itemName);
-
-                    if (pillar == defaultPillar) itemName += " (Default)";
+                    string itemName = UIUtil.GenerateBeautifiedPrefabName(pillar, defaultPillar);
 
                     pillarDropDown.AddItem(itemName);
 
@@ -91,18 +81,7 @@ namespace NetworkSkins.Pillars
             return false;
         }
 
-        string AddSpacesToSentence(string text)
-        {
-            StringBuilder newText = new StringBuilder(text.Length * 2);
-            newText.Append(text[0]);
-            for (int i = 1; i < text.Length; i++)
-            {
-                if (char.IsUpper(text[i]))
-                    if (text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) newText.Append(' ');
-                newText.Append(text[i]);
-            }
-            return newText.ToString();
-        }
+
 
         private void bridgePillarDropDown_eventSelectedIndexChanged(UIComponent component, int index)
         {

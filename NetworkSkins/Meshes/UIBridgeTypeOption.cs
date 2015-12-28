@@ -17,7 +17,7 @@ namespace NetworkSkins.Meshes
 
         public override void Populate(NetInfo prefab)
         {
-            Debug.Log("BridgeTypeOption populate: " + prefab.name);
+            //Debug.Log("BridgeTypeOption populate: " + prefab.name);
             //throw new System.NotImplementedException();
         }
     }

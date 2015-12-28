@@ -1,4 +1,5 @@
 ﻿using ColossalFramework.UI;
+using System.Text;
 using UnityEngine;
 
 namespace NetworkSkins.UI
@@ -81,6 +82,37 @@ namespace NetworkSkins.UI
             });
 
             return dropDown;
+        }
+
+        // TODO better names from localisation!
+        public static string GenerateBeautifiedPrefabName(PrefabInfo prefab, PrefabInfo defaultPrefab) 
+        {
+            string itemName = (prefab == null ? "None" : prefab.name);
+
+            var index1 = itemName.IndexOf('.');
+            if (index1 > -1) itemName = itemName.Substring(index1 + 1);
+
+            var index2 = itemName.IndexOf("_Data");
+            if (index2 > -1) itemName = itemName.Substring(0, index2);
+
+            itemName = AddSpacesToSentence(itemName);
+
+            if (prefab == defaultPrefab) itemName += " (Default)";
+
+            return itemName;
+        }
+
+        private static string AddSpacesToSentence(string text)
+        {
+            StringBuilder newText = new StringBuilder(text.Length * 2);
+            newText.Append(text[0]);
+            for (int i = 1; i < text.Length; i++)
+            {
+                if (char.IsUpper(text[i]))
+                    if (text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) newText.Append(' ');
+                newText.Append(text[i]);
+            }
+            return newText.ToString();
         }
     }
 }

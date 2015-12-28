@@ -56,19 +56,6 @@ namespace NetworkSkins
             }
         }
 
-        // Support for FineRoadHeights and Vanilla NetTool
-        public static INetToolWrapper GenerateNetToolWrapper()
-        {
-            if (!FineRoadHeightsEnabled)
-            {
-                return new NetToolWrapperVanilla();
-            }
-            else
-            {
-                return new NetToolWrapperFineRoadHeights();
-            }
-        }
-
         public static string GetModPath()
         {
             foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
@@ -82,18 +69,6 @@ namespace NetworkSkins
         public static bool CheckLoadMode(LoadMode mode) 
         {
             return mode == LoadMode.LoadGame || mode == LoadMode.NewGame;
-        }
-
-        private static bool FineRoadHeightsEnabled
-        {
-            get
-            {
-                foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
-                {
-                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("FineRoadHeights")) && current.isEnabled) return true;
-                }
-                return false;
-            }
         }
     }
 }

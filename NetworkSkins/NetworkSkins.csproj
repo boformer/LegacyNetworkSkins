@@ -61,16 +61,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ADebugger.cs" />
+    <Compile Include="Detour\RedirectionHelper.cs" />
     <Compile Include="Meshes\UIBridgeTypeOption.cs" />
+    <Compile Include="Net\NetEventManager.cs" />
+    <Compile Include="Net\NetManagerDetour.cs" />
     <Compile Include="Net\NetToolWrapperFineRoadHeights.cs" />
     <Compile Include="Net\INetToolWrapper.cs" />
     <Compile Include="Net\NetToolWrapperVanilla.cs" />
     <Compile Include="Net\NetType.cs" />
     <Compile Include="Net\NetUtil.cs" />
     <Compile Include="Pillars\PillarCustomizer.cs" />
-    <Compile Include="Pillars\UIPillarOption.cs" />
-    <Compile Include="Props\UILightOption.cs" />
-    <Compile Include="Props\UITreeOption.cs" />
+    <Compile Include="Pillars\UI\UIPillarOption.cs" />
+    <Compile Include="Props\Detour\NetInfoDetour.cs" />
+    <Compile Include="Props\Detour\NetLaneDetour.cs" />
+    <Compile Include="Props\Detour\NetManagerDetour.cs" />
+    <Compile Include="Props\PropCustomizer.cs" />
+    <Compile Include="Props\Data\PropCustomizerData.cs" />
+    <Compile Include="Props\Data\PropCustomizerDataExtension.cs" />
+    <Compile Include="Props\Data\SegmentPropDef.cs" />
+    <Compile Include="Props\TreeType.cs" />
+    <Compile Include="Props\UI\UILightOption.cs" />
+    <Compile Include="Props\UI\UITreeOption.cs" />
     <Compile Include="UI\UINetworkOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
     <Compile Include="UI\UINetworkSkinsPanel.cs" />
@@ -78,9 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\UIUtil.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="libs\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(ProjectName)"
