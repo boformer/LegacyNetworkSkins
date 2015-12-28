@@ -123,6 +123,29 @@ namespace NetworkSkins.Props
                             num4 = -num4;
                         }
                         PropInfo finalProp = prop.m_finalProp;
+
+                        // mod begin
+                        // custom street lights
+                        if (finalProp != null)
+                        {
+                            if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                            {
+                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                if (segmentPropMap != null)
+                                {
+                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                    if (def != null)
+                                    {
+                                        if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
+                                        {
+                                            finalProp = def.streetLightPrefab;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // mod end
+
                         if (finalProp != null)
                         {
                             Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
@@ -307,6 +330,29 @@ namespace NetworkSkins.Props
                                 num4 = -num4;
                             }
                             PropInfo finalProp = prop.m_finalProp;
+
+                            // mod begin
+                            // custom street lights
+                            if (finalProp != null)
+                            {
+                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                {
+                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                    if (segmentPropMap != null)
+                                    {
+                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                        if (def != null)
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
+                                            {
+                                                finalProp = def.streetLightPrefab;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // mod end
+
                             if (finalProp != null && (layerMask & 1 << finalProp.m_prefabDataLayer) != 0)
                             {
                                 Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
@@ -495,6 +541,29 @@ namespace NetworkSkins.Props
                                 num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
                             }
                             PropInfo finalProp = prop.m_finalProp;
+
+                            // mod begin
+                            // custom street lights
+                            if (finalProp != null)
+                            {
+                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                {
+                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                    if (segmentPropMap != null)
+                                    {
+                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                        if (def != null)
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
+                                            {
+                                                finalProp = def.streetLightPrefab;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // mod end
+
                             if (finalProp != null)
                             {
                                 hasProps = true;
@@ -624,6 +693,29 @@ namespace NetworkSkins.Props
                                 num3 = -num3;
                             }
                             PropInfo finalProp = prop.m_finalProp;
+
+                            // mod begin
+                            // custom street lights
+                            if (finalProp != null)
+                            {
+                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                {
+                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
+                                    if (segmentPropMap != null)
+                                    {
+                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
+                                        if (def != null)
+                                        {
+                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
+                                            {
+                                                finalProp = def.streetLightPrefab;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // mod end
+
                             if (finalProp != null)
                             {
                                 hasProps = true;
