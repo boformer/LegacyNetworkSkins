@@ -9,28 +9,31 @@ namespace NetworkSkins.UI
         private const float LABEL_RELATIVE_WIDTH = .30f;
         private const float COLUMN_PADDING = 5f;
 
-        public static UIDropDown CreateDropDownWithLabel(UIComponent parent, string labelText, float posY, float width) 
+        public static UIDropDown CreateDropDownWithLabel(out UILabel label, UIComponent parent, string labelText, float width) 
         {
             var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
             
             UIDropDown dropDown = UIUtil.CreateDropDown(parent);
-            dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, posY);
+            dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
             dropDown.width = width - labelWidth - COLUMN_PADDING;
 
-            AddLabel(parent, labelText, labelWidth, dropDown.height, posY);
+            label = AddLabel(parent, labelText, labelWidth, dropDown.height);
 
             return dropDown;
         }
-        private static void AddLabel(UIComponent parent, string text, float width, float dropDownHeight, float y)
+        private static UILabel AddLabel(UIComponent parent, string text, float width, float dropDownHeight)
         {
             var label = parent.AddUIComponent<UILabel>();
             label.text = text;
             label.textScale = .85f;
             label.textColor = new Color32(200, 200, 200, 255);
             label.autoSize = false;
+            label.autoHeight = true;
             label.width = width;
             label.textAlignment = UIHorizontalAlignment.Right;
-            label.relativePosition = new Vector3(0, y + Mathf.Round((dropDownHeight - label.height) / 2));
+            label.relativePosition = new Vector3(0, Mathf.Round((dropDownHeight - label.height) / 2));
+
+            return label;
         }
 
         public static UIDropDown CreateDropDown(UIComponent parent)

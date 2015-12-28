@@ -65,9 +65,9 @@
     <Compile Include="Meshes\UIBridgeTypeOption.cs" />
     <Compile Include="Net\NetEventManager.cs" />
     <Compile Include="Net\NetManagerDetour.cs" />
-    <Compile Include="Net\NetToolWrapperFineRoadHeights.cs" />
-    <Compile Include="Net\INetToolWrapper.cs" />
-    <Compile Include="Net\NetToolWrapperVanilla.cs" />
+    <Compile Include="Net\NetToolWrapper\NetToolWrapperFineRoadHeights.cs" />
+    <Compile Include="Net\NetToolWrapper\INetToolWrapper.cs" />
+    <Compile Include="Net\NetToolWrapper\NetToolWrapperVanilla.cs" />
     <Compile Include="Net\NetType.cs" />
     <Compile Include="Net\NetUtil.cs" />
     <Compile Include="Pillars\PillarCustomizer.cs" />
@@ -79,9 +79,10 @@
     <Compile Include="Props\Data\PropCustomizerData.cs" />
     <Compile Include="Props\Data\PropCustomizerDataExtension.cs" />
     <Compile Include="Props\Data\SegmentPropDef.cs" />
-    <Compile Include="Props\TreeType.cs" />
+    <Compile Include="Net\LanePosition.cs" />
     <Compile Include="Props\UI\UILightOption.cs" />
     <Compile Include="Props\UI\UITreeOption.cs" />
+    <Compile Include="UI\UIDropDownOption.cs" />
     <Compile Include="UI\UINetworkOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
     <Compile Include="UI\UINetworkSkinsPanel.cs" />

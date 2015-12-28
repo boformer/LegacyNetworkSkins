@@ -108,13 +108,17 @@ namespace NetworkSkins.UI
 
             // Add some example options
             GetPage(NetType.GROUND).AddUIComponent<UILightOption>();
-            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>();
+            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.LEFT;
+            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.MIDDLE;
+            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.RIGHT;
 
             GetPage(NetType.ELEVATED).AddUIComponent<UILightOption>();
-            GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>();
+            GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.BRIDGE_PILLAR;
+            GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
 
             GetPage(NetType.BRIDGE).AddUIComponent<UILightOption>();
-            GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>();
+            GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.BRIDGE_PILLAR;
+            GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
             GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();
 
             tabstrip.selectedIndex = (int)NetType.GROUND;

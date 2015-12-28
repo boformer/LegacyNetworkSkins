@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace NetworkSkins.Meshes
 {
-    public class UIBridgeTypeOption : UINetworkOption
+    public class UIBridgeTypeOption : UIDropDownOption
     {
-        private UIDropDown bridgeTypeDropDown;
         protected override void Initialize()
         {
-            var y = 0f;
-            bridgeTypeDropDown = UIUtil.CreateDropDownWithLabel(this, "Bridge Type", y, ParentWidth);
-            bridgeTypeDropDown.items = new string[] { "Girder Bridge", "Truss Bridge", "Steel Arch Bridge", "Stone Arch Bridge", "Suspension Bridge" };
-            bridgeTypeDropDown.selectedIndex = 0;
+            Description = "Bridge Type";
+            base.Initialize();
         }
 
-        public override void Populate(NetInfo prefab)
+        protected override bool PopulateDropDown()
         {
-            //Debug.Log("BridgeTypeOption populate: " + prefab.name);
+            DropDown.items = new string[] { "Girder Bridge", "Truss Bridge", "Steel Arch Bridge", "Stone Arch Bridge", "Suspension Bridge" };
+            DropDown.selectedIndex = 1;
+            return true;
+        }
+
+        protected override void OnSelectionChanged(int index)
+        {
             //throw new System.NotImplementedException();
         }
     }

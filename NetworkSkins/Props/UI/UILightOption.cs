@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace NetworkSkins.Props
 {
-    public class UILightOption : UINetworkOption
+    public class UILightOption : UIDropDownOption
     {
-        private UIDropDown lightDropDown;
-        protected override void Initialize()
+        protected override void Initialize() 
         {
-            var y = 0f;
-            lightDropDown = UIUtil.CreateDropDownWithLabel(this, "Street Light", y, ParentWidth);
-            lightDropDown.items = new string[] { "Street Light (Yellow)", "Street Light (White)", "Chinese Lanterns", "None" };
-            lightDropDown.selectedIndex = 0;
+            Description = "Street Light";
+            base.Initialize();
+        }
+        
+        protected override bool PopulateDropDown()
+        {
+            DropDown.items = new string[] { "Orange Street Light", "White Street Light", "Chinese Lanterns", "None" };
+            DropDown.selectedIndex = 1;
+            return true;
         }
 
-        public override void Populate(NetInfo prefab)
+        protected override void OnSelectionChanged(int index)
         {
-            //Debug.Log("LightOption populate: " + prefab.name);
             //throw new System.NotImplementedException();
         }
     }

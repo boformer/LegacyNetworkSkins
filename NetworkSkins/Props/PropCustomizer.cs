@@ -90,11 +90,11 @@ namespace NetworkSkins.Props
             NetManagerDetour.Revert();
         }
 
-        public bool HasTrees(NetInfo prefab, LanePosition type) 
+        public bool HasTrees(NetInfo prefab, LanePosition position) 
         {
             if(prefab.m_lanes != null)
                 foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && IsCorrectSide(lane.m_position, type))
+                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
                         foreach (var laneProp in lane.m_laneProps.m_props)
                             if (laneProp != null)
                                 if (laneProp.m_tree != null) return true;
@@ -106,60 +106,49 @@ namespace NetworkSkins.Props
             return new List<TreeInfo>(networkTrees);
         }
 
-        public TreeInfo GetActiveTree(NetInfo prefab, LanePosition type)
+        public TreeInfo GetActiveTree(NetInfo prefab, LanePosition position)
         {
-            var map = GetActiveTreeMap(type);
+            var map = GetActiveTreeMap(position);
 
             TreeInfo activeTree;
-            if (!map.TryGetValue(prefab, out activeTree)) return GetDefaultTree(prefab, type);
+            if (!map.TryGetValue(prefab, out activeTree)) return GetDefaultTree(prefab, position);
 
             return activeTree;
         }
 
-        public TreeInfo GetDefaultTree(NetInfo prefab, LanePosition type)
+        public TreeInfo GetDefaultTree(NetInfo prefab, LanePosition position)
         {
 
             if (prefab.m_lanes != null)
                 foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && IsCorrectSide(lane.m_position, type))
+                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
                         foreach (var laneProp in lane.m_laneProps.m_props)
                             if (laneProp != null)
                                 if (laneProp.m_tree != null) return laneProp.m_tree;
             return null;
         }
 
-        public void SetTree(NetInfo prefab, LanePosition type, TreeInfo tree)
+        public void SetTree(NetInfo prefab, LanePosition position, TreeInfo tree)
         {
-            var map = GetActiveTreeMap(type);
+            var map = GetActiveTreeMap(position);
 
-            if (tree == GetDefaultTree(prefab, type))
+            if (tree == GetDefaultTree(prefab, position))
                 map.Remove(prefab);
             else
                 map[prefab] = tree;
         }
 
-        private Dictionary<NetInfo, TreeInfo> GetActiveTreeMap(LanePosition type) 
+        private Dictionary<NetInfo, TreeInfo> GetActiveTreeMap(LanePosition position) 
         {
-            switch (type) 
+            switch (position) 
             {
-                case LanePosition.LEFT:
-                    return activeLeftTrees;
-                case LanePosition.MIDDLE:
-                    return activeMiddleTrees;
-                case LanePosition.RIGHT:
-                    return activeRightTrees;
-                default:
-                    throw new Exception("Network Skins: Unknown Tree Type!");
+                case LanePosition.LEFT:   return activeLeftTrees;
+                case LanePosition.MIDDLE: return activeMiddleTrees;
+                case LanePosition.RIGHT:  return activeRightTrees;
+                default: throw new ArgumentOutOfRangeException("position");
             }
         }
 
-        private bool IsCorrectSide(float lanePosition, LanePosition type)
-        {
-            if (type == LanePosition.MIDDLE) 
-                return lanePosition == 0f;
-            else
-                return (type == LanePosition.LEFT) == (lanePosition < 0);
-        }
 
         public void OnSegmentCreate(ushort segment)
         {

@@ -6,9 +6,20 @@ namespace NetworkSkins
 {
     public abstract class UINetworkOption : UIPanel
     {
-        protected abstract void Initialize();
+        protected NetInfo SelectedPrefab { get; private set; }
+        protected bool Populating { get; private set; }
         
-        public abstract void Populate(NetInfo prefab);
+        protected abstract void Initialize();
+
+        public void Populate(NetInfo prefab) 
+        {
+            Populating = true;
+            SelectedPrefab = prefab;
+            PopulateImpl();
+            Populating = false;
+        }
+        
+        protected abstract void PopulateImpl();
 
         protected float ParentWidth 
         {
