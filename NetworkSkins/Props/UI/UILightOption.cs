@@ -1,13 +1,11 @@
-﻿using ColossalFramework.UI;
+﻿using System.Collections.Generic;
 using NetworkSkins.UI;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace NetworkSkins.Props
 {
     public class UILightOption : UIDropDownOption
     {
-        private List<PropInfo> availableStreetLights;
+        private List<PropInfo> _availableStreetLights;
 
         protected override void Initialize() 
         {
@@ -17,25 +15,27 @@ namespace NetworkSkins.Props
         
         protected override bool PopulateDropDown()
         {
-            availableStreetLights = PropCustomizer.instance.GetAvailableStreetLights(SelectedPrefab);
+            _availableStreetLights = PropCustomizer.Instance.GetAvailableStreetLights(SelectedPrefab);
 
-            if (SelectedPrefab != null && availableStreetLights != null && PropCustomizer.instance.HasStreetLights(SelectedPrefab))
+            if (SelectedPrefab != null && _availableStreetLights != null && PropCustomizer.Instance.HasStreetLights(SelectedPrefab))
             {
-                var defaultProp = PropCustomizer.instance.GetDefaultStreetLight(SelectedPrefab);
-                var activeProp = PropCustomizer.instance.GetActiveStreetLight(SelectedPrefab);
+                var defaultProp = PropCustomizer.Instance.GetDefaultStreetLight(SelectedPrefab);
+                var activeProp = PropCustomizer.Instance.GetActiveStreetLight(SelectedPrefab);
 
                 DropDown.items = new string[0];
 
-                foreach (var prop in availableStreetLights)
+                foreach (var prop in _availableStreetLights)
                 {
-                    string itemName = UIUtil.GenerateBeautifiedPrefabName(prop, defaultProp);
+                    var itemName = UIUtil.GenerateBeautifiedPrefabName(prop);
+                    itemName = BeautifyNameEvenMore(itemName);
+                    if (prop == defaultProp) itemName += " (Default)";
 
                     DropDown.AddItem(itemName);
 
                     if (prop == activeProp) DropDown.selectedIndex = DropDown.items.Length - 1;
                 }
 
-                if (availableStreetLights.Count >= 2)
+                if (_availableStreetLights.Count >= 2)
                 {
                     return true;
                 }
@@ -43,9 +43,23 @@ namespace NetworkSkins.Props
             return false;
         }
 
+        private string BeautifyNameEvenMore(string itemName)
+        {
+            switch (itemName)
+            {
+                case "New Street Light": return "Cold White Street Light";
+                case "New Street Light Highway": return "Warm White Street Light";
+                case "New Street Light Small Road": return "Neutral White Street Light";
+                case "Avenue Light": return "Sodium-vapor Double Street Light";
+                case "Street Lamp #1": return "Modern Street Lamp";
+                case "Street Lamp #2": return "Old Street Lamp";
+                default: return itemName;
+            }
+        }
+
         protected override void OnSelectionChanged(int index)
         {
-            PropCustomizer.instance.SetStreetLight(SelectedPrefab, availableStreetLights[index]);
+            PropCustomizer.Instance.SetStreetLight(SelectedPrefab, _availableStreetLights[index]);
         }
     }
 }

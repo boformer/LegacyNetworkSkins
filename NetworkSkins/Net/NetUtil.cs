@@ -1,8 +1,5 @@
-﻿using ColossalFramework.Plugins;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using ColossalFramework.Plugins;
 
 namespace NetworkSkins.Net
 {
@@ -12,31 +9,31 @@ namespace NetworkSkins.Net
 
         public static NetInfo[] GetSubPrefabs(NetInfo prefab)
         {
-            NetInfo[] subPrefabs = new NetInfo[NET_TYPE_NAMES.Length];
+            var subPrefabs = new NetInfo[NET_TYPE_NAMES.Length];
 
             if (prefab.m_netAI is TrainTrackAI)
             {
-                var netAI = (prefab.m_netAI as TrainTrackAI);
-                subPrefabs[(int)NetType.TUNNEL] = netAI.m_tunnelInfo;
-                subPrefabs[(int)NetType.GROUND] = netAI.m_info;
-                subPrefabs[(int)NetType.ELEVATED] = netAI.m_elevatedInfo;
-                subPrefabs[(int)NetType.BRIDGE] = netAI.m_bridgeInfo;
+                var netAI = (TrainTrackAI) prefab.m_netAI;
+                subPrefabs[(int)NetType.Tunnel] = netAI.m_tunnelInfo;
+                subPrefabs[(int)NetType.Ground] = netAI.m_info;
+                subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
+                subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
             }
             else if (prefab.m_netAI is RoadAI)
             {
-                var netAI = (prefab.m_netAI as RoadAI);
-                subPrefabs[(int)NetType.TUNNEL] = netAI.m_tunnelInfo;
-                subPrefabs[(int)NetType.GROUND] = netAI.m_info;
-                subPrefabs[(int)NetType.ELEVATED] = netAI.m_elevatedInfo;
-                subPrefabs[(int)NetType.BRIDGE] = netAI.m_bridgeInfo;
+                var netAI = (RoadAI) prefab.m_netAI;
+                subPrefabs[(int)NetType.Tunnel] = netAI.m_tunnelInfo;
+                subPrefabs[(int)NetType.Ground] = netAI.m_info;
+                subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
+                subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
             }
             else if (prefab.m_netAI is PedestrianPathAI)
             {
-                var netAI = (prefab.m_netAI as PedestrianPathAI);
-                subPrefabs[(int)NetType.TUNNEL] = netAI.m_tunnelInfo;
-                subPrefabs[(int)NetType.GROUND] = netAI.m_info;
-                subPrefabs[(int)NetType.ELEVATED] = netAI.m_elevatedInfo;
-                subPrefabs[(int)NetType.BRIDGE] = netAI.m_bridgeInfo;
+                var netAI = (PedestrianPathAI) prefab.m_netAI;
+                subPrefabs[(int)NetType.Tunnel] = netAI.m_tunnelInfo;
+                subPrefabs[(int)NetType.Ground] = netAI.m_info;
+                subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
+                subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
             }
 
             return subPrefabs;
@@ -59,11 +56,7 @@ namespace NetworkSkins.Net
         {
             get
             {
-                foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
-                {
-                    if ((current.publishedFileID.AsUInt64 == 413678178uL || current.name.Contains("FineRoadHeights")) && current.isEnabled) return true;
-                }
-                return false;
+                return PluginManager.instance.GetPluginsInfo().Any(mod => (mod.publishedFileID.AsUInt64 == 413678178uL || mod.name.Contains("FineRoadHeights")) && mod.isEnabled);
             }
         }
     }

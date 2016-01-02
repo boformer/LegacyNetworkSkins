@@ -1,10 +1,11 @@
 ﻿using System;
+
 namespace NetworkSkins.Pillars
 {
     public enum PillarType
     {
-        BRIDGE_PILLAR,
-        MIDDLE_PILLAR
+        BridgePillar,
+        MiddlePillar
     }
 
     public static class PillarTypeExtensions
@@ -13,9 +14,9 @@ namespace NetworkSkins.Pillars
         {
             switch (type)
             {
-                case PillarType.BRIDGE_PILLAR: return "Bridge Pillar";
-                case PillarType.MIDDLE_PILLAR: return "Middle Pillar";
-                default: throw new ArgumentOutOfRangeException("type");
+                case PillarType.BridgePillar: return "Bridge Pillar";
+                case PillarType.MiddlePillar: return "Middle Pillar";
+                default: throw new ArgumentOutOfRangeException(nameof(type));
             }
         }
     }

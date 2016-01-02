@@ -1,39 +1,36 @@
 ﻿using ColossalFramework.Plugins;
+using ColossalFramework.Steamworks;
 using ColossalFramework.UI;
 using ICities;
-using NetworkSkins.UI;
+using NetworkSkins.Data;
+using NetworkSkins.Detour;
 using NetworkSkins.Net;
-using UnityEngine;
-using System;
+using NetworkSkins.UI;
 
 namespace NetworkSkins
 {
     public class NetworkSkinsMod : LoadingExtensionBase, IUserMod
     {
+        private const ulong workshopId = 543722850UL;
+
         private UINetworkSkinsPanel panel;
 
-        public string Name
+        public string Name => "Network Skins";
+        public string Description => "Change the visual appearance of roads, train tracks and other networks";
+
+        public override void OnCreated(ILoading loading)
         {
-            get
-            {
-                /*
-                // Code for GUI debugging
-                if (panel == null)
-                {
-                    panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
-                }
-                */
-                return "Network Skins";
-            }
-        }
-        public string Description
-        {
-            get { return "Change the visual appearance of roads, train tracks and other networks"; }
+            base.OnCreated(loading);
+
+            RenderManagerDetour.Deploy();
+            NetManagerDetour.Deploy();
         }
 
         public override void OnLevelLoaded(LoadMode mode)
         {
             base.OnLevelLoaded(mode);
+
+            SegmentDataManager.Instance.OnLevelLoaded();
 
             // Don't load if it's not a game
             if (!CheckLoadMode(mode)) return;
@@ -50,18 +47,27 @@ namespace NetworkSkins
         {
             base.OnLevelUnloading();
 
+            SegmentDataManager.Instance.OnLevelUnloaded();
+
             if (panel != null)
             {
                 UnityEngine.Object.Destroy(panel);
             }
         }
 
+        public override void OnReleased()
+        {
+            base.OnReleased();
+
+            RenderManagerDetour.Revert();
+            NetManagerDetour.Revert();
+        }
+
         public static string GetModPath()
         {
-            foreach (PluginManager.PluginInfo current in PluginManager.instance.GetPluginsInfo())
+            foreach (var current in PluginManager.instance.GetPluginsInfo())
             {
-                // TODO check for workshop id
-                if ((current.name.Contains("NetworkSkins"))) return current.modPath;
+                if (current.publishedFileID.AsUInt64 == workshopId || current.name.Contains("NetworkSkins")) return current.modPath;
             }
             return "";
         }

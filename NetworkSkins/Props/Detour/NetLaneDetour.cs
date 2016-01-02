@@ -1,7 +1,9 @@
-﻿using ColossalFramework;
-using ColossalFramework.Math;
-using NetworkSkins.Detour;
+﻿using System.Linq;
 using System.Reflection;
+using ColossalFramework;
+using ColossalFramework.Math;
+using NetworkSkins.Data;
+using NetworkSkins.Detour;
 using UnityEngine;
 
 namespace NetworkSkins.Props
@@ -56,8 +58,6 @@ namespace NetworkSkins.Props
                 _NetLane_PopulateGroupData_state = RedirectionHelper.RedirectCalls(_NetLane_PopulateGroupData_original, _NetLane_PopulateGroupData_detour);
 
                 deployed = true;
-
-                Debug.Log("Network Skins: NetLane Methods detoured!");
             }
         }
 
@@ -82,38 +82,47 @@ namespace NetworkSkins.Props
                 _NetLane_PopulateGroupData_detour = null;
 
                 deployed = false;
-
-                Debug.Log("Network Skins: NetLane Methods restored!");
             }
         }
 
+        /// <summary>
+        /// Not called ingame.
+        /// </summary>
+        /// <param name="laneID"></param>
+        /// <param name="laneInfo"></param>
+        /// <param name="startAngle"></param>
+        /// <param name="endAngle"></param>
+        /// <param name="invert"></param>
+        /// <param name="data"></param>
+        /// <param name="propIndex"></param>
         public void RefreshInstance(uint laneID, NetInfo.Lane laneInfo, float startAngle, float endAngle, bool invert, ref RenderManager.Instance data, ref int propIndex)
         {
-            ADebugger.instance.a_refreshInstance++;// mod
-
-            NetLaneProps laneProps = laneInfo.m_laneProps;
+            var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                bool flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
-                bool flag2 = flag != invert;
-                int num = laneProps.m_props.Length;
-                for (int i = 0; i < num; i++)
-                {
-                    // mod begin
-                    var _this = NetManager.instance.m_lanes.m_buffer[laneID];
-                    // mod end
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag2 = flag != invert;
+                var num = laneProps.m_props.Length;
 
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                // mod begin
+                var _this = NetManager.instance.m_lanes.m_buffer[laneID];
+                var streetLightPrefabDataIndices = PropCustomizer.Instance.StreetLightPrefabDataIndices;
+                var segmentData = SegmentDataManager.Instance.SegmentToSegmentDataMap?[_this.m_segment];
+                // mod end
+
+                for (var i = 0; i < num; i++)
+                {
+                    var prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
-                        int num2 = 2;
+                        var num2 = 2;
                         if (prop.m_repeatDistance > 1f)
                         {
                             num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
                         }
-                        int num3 = propIndex;
+                        var num3 = propIndex;
                         propIndex = num3 + (num2 + 1 >> 1);
-                        float num4 = prop.m_segmentOffset * 0.5f;
+                        var num4 = prop.m_segmentOffset * 0.5f;
                         if (_this.m_length != 0f)
                         {
                             num4 = Mathf.Clamp(num4 + prop.m_position.z / _this.m_length, -0.5f, 0.5f);
@@ -122,46 +131,36 @@ namespace NetworkSkins.Props
                         {
                             num4 = -num4;
                         }
-                        PropInfo finalProp = prop.m_finalProp;
+                        var finalProp = prop.m_finalProp;
 
                         // mod begin
                         // custom street lights
-                        if (finalProp != null)
+                        if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
                         {
-                            if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                            // Contains seems to be faster than array lookup
+                            if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
                             {
-                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                if (segmentPropMap != null)
-                                {
-                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                    if (def != null)
-                                    {
-                                        if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
-                                        {
-                                            finalProp = def.streetLightPrefab;
-                                        }
-                                    }
-                                }
+                                finalProp = segmentData.StreetLightPrefab;
                             }
                         }
                         // mod end
 
                         if (finalProp != null)
                         {
-                            Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
-                            for (int j = 1; j <= num2; j += 2)
+                            var randomizer = new Randomizer((int)(laneID + (uint)i));
+                            for (var j = 1; j <= num2; j += 2)
                             {
                                 if (randomizer.Int32(100u) < prop.m_probability)
                                 {
-                                    float num5 = num4 + (float)j / (float)num2;
-                                    PropInfo variation = finalProp.GetVariation(ref randomizer);
+                                    var num5 = num4 + (float)j / (float)num2;
+                                    var variation = finalProp.GetVariation(ref randomizer);
                                     randomizer.Int32(10000u);
                                     if (prop.m_colorMode == NetLaneProps.ColorMode.Default)
                                     {
                                         variation.GetColor(ref randomizer);
                                     }
-                                    Vector3 worldPos = _this.m_bezier.Position(num5);
-                                    Vector3 vector = _this.m_bezier.Tangent(num5);
+                                    var worldPos = _this.m_bezier.Position(num5);
+                                    var vector = _this.m_bezier.Tangent(num5);
                                     if (vector != Vector3.zero)
                                     {
                                         if (flag2)
@@ -175,10 +174,10 @@ namespace NetworkSkins.Props
                                             worldPos.x += vector.z * prop.m_position.x;
                                             worldPos.z -= vector.x * prop.m_position.x;
                                         }
-                                        float num6 = Mathf.Atan2(vector.x, -vector.z);
+                                        var num6 = Mathf.Atan2(vector.x, -vector.z);
                                         if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
                                         {
-                                            float num7 = endAngle - startAngle;
+                                            var num7 = endAngle - startAngle;
                                             if (num7 > 3.14159274f)
                                             {
                                                 num7 -= 6.28318548f;
@@ -187,7 +186,7 @@ namespace NetworkSkins.Props
                                             {
                                                 num7 += 6.28318548f;
                                             }
-                                            float num8 = startAngle + num7 * num5;
+                                            var num8 = startAngle + num7 * num5;
                                             num7 = num8 - num6;
                                             if (num7 > 3.14159274f)
                                             {
@@ -200,7 +199,7 @@ namespace NetworkSkins.Props
                                             num6 += num7 * prop.m_cornerAngle;
                                             if (num7 != 0f && prop.m_position.x != 0f)
                                             {
-                                                float num9 = Mathf.Tan(num7);
+                                                var num9 = Mathf.Tan(num7);
                                                 worldPos.x += vector.x * num9 * prop.m_position.x;
                                                 worldPos.z += vector.z * num9 * prop.m_position.x;
                                             }
@@ -211,39 +210,31 @@ namespace NetworkSkins.Props
                                 }
                             }
                         }
-                        TreeInfo finalTree = prop.m_finalTree;
+                        var finalTree = prop.m_finalTree;
 
                         // mod begin
                         // custom road trees
-                        if (finalTree != null) 
+                        if (finalTree != null && segmentData != null)
                         {
-                            var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                            if (segmentPropMap != null)
+                            if (laneInfo.m_position < 0) // Left Trees
                             {
-                                var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                if (def != null)
+                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
                                 {
-                                    if (laneInfo.m_position < 0) // Left Trees
-                                    {
-                                        if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
-                                        {
-                                            finalTree = def.treeLeftPrefab;
-                                        }
-                                    }
-                                    else if (laneInfo.m_position == 0) // Middle Trees
-                                    {
-                                        if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
-                                        {
-                                            finalTree = def.treeMiddlePrefab;
-                                        }
-                                    }
-                                    else if (laneInfo.m_position > 0) // Right Trees
-                                    {
-                                        if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
-                                        {
-                                            finalTree = def.treeRightPrefab;
-                                        }
-                                    }
+                                    finalTree = segmentData.TreeLeftPrefab;
+                                }
+                            }
+                            else if (laneInfo.m_position == 0) // Middle Trees
+                            {
+                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                {
+                                    finalTree = segmentData.TreeMiddlePrefab;
+                                }
+                            }
+                            else // Right Trees
+                            {
+                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                {
+                                    finalTree = segmentData.TreeRightPrefab;
                                 }
                             }
                         }
@@ -251,20 +242,20 @@ namespace NetworkSkins.Props
 
                         if (finalTree != null)
                         {
-                            Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                            for (int k = 1; k <= num2; k += 2)
+                            var randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                            for (var k = 1; k <= num2; k += 2)
                             {
                                 if (randomizer2.Int32(100u) < prop.m_probability)
                                 {
-                                    float t = num4 + (float)k / (float)num2;
+                                    var t = num4 + (float)k / (float)num2;
                                     finalTree.GetVariation(ref randomizer2);
                                     randomizer2.Int32(10000u);
                                     randomizer2.Int32(10000u);
-                                    Vector3 worldPos2 = _this.m_bezier.Position(t);
+                                    var worldPos2 = _this.m_bezier.Position(t);
                                     worldPos2.y += prop.m_position.y;
                                     if (prop.m_position.x != 0f)
                                     {
-                                        Vector3 vector2 = _this.m_bezier.Tangent(t);
+                                        var vector2 = _this.m_bezier.Tangent(t);
                                         if (flag2)
                                         {
                                             vector2 = -vector2;
@@ -283,44 +274,65 @@ namespace NetworkSkins.Props
                 }
             }
         }
+
+        /// <summary>
+        /// Called 1000s of times every frame! Must be high-performant!
+        /// Not called when viewing from distance.
+        /// </summary>
+        /// <param name="cameraInfo"></param>
+        /// <param name="segmentID"></param>
+        /// <param name="laneID"></param>
+        /// <param name="laneInfo"></param>
+        /// <param name="startFlags"></param>
+        /// <param name="endFlags"></param>
+        /// <param name="startColor"></param>
+        /// <param name="endColor"></param>
+        /// <param name="startAngle"></param>
+        /// <param name="endAngle"></param>
+        /// <param name="invert"></param>
+        /// <param name="layerMask"></param>
+        /// <param name="objectIndex"></param>
+        /// <param name="data"></param>
+        /// <param name="propIndex"></param>
         public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, Color startColor, Color endColor, float startAngle, float endAngle, bool invert, int layerMask, Vector4 objectIndex, ref RenderManager.Instance data, ref int propIndex)
         {
-            ADebugger.instance.a_renderInstance++;// mod
-
-            NetLaneProps laneProps = laneInfo.m_laneProps;
+            var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                bool flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
-                bool flag2 = flag != invert;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag2 = flag != invert;
                 if (flag)
                 {
-                    NetNode.Flags flags = startFlags;
+                    var flags = startFlags;
                     startFlags = endFlags;
                     endFlags = flags;
                 }
-                int num = laneProps.m_props.Length;
-                for (int i = 0; i < num; i++)
-                {
-                    // mod begin
-                    var _this = NetManager.instance.m_lanes.m_buffer[laneID];
-                    // mod end
+                var num = laneProps.m_props.Length;
 
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                // mod begin
+                var _this = NetManager.instance.m_lanes.m_buffer[laneID];
+                var streetLightPrefabDataIndices = PropCustomizer.Instance.StreetLightPrefabDataIndices;
+                var segmentData = SegmentDataManager.Instance.SegmentToSegmentDataMap?[_this.m_segment];
+                // mod end
+
+                for (var i = 0; i < num; i++)
+                {
+                    var prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
-                        int num2 = 2;
+                        var num2 = 2;
                         if (prop.m_repeatDistance > 1f)
                         {
                             num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
                         }
-                        int num3 = propIndex;
+                        var num3 = propIndex;
                         if (propIndex != -1)
                         {
                             propIndex = num3 + (num2 + 1 >> 1);
                         }
                         if (prop.CheckFlags((NetLane.Flags)_this.m_flags, startFlags, endFlags))
                         {
-                            float num4 = prop.m_segmentOffset * 0.5f;
+                            var num4 = prop.m_segmentOffset * 0.5f;
                             if (_this.m_length != 0f)
                             {
                                 num4 = Mathf.Clamp(num4 + prop.m_position.z / _this.m_length, -0.5f, 0.5f);
@@ -329,46 +341,39 @@ namespace NetworkSkins.Props
                             {
                                 num4 = -num4;
                             }
-                            PropInfo finalProp = prop.m_finalProp;
+                            var finalProp = prop.m_finalProp;
 
                             // mod begin
                             // custom street lights
-                            if (finalProp != null)
+                            var prop_m_angle = prop.m_angle;
+                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
                             {
-                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                // Contains seems to be faster than array lookup
+                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
                                 {
-                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                    if (segmentPropMap != null)
-                                    {
-                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                        if (def != null)
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
-                                            {
-                                                finalProp = def.streetLightPrefab;
-                                            }
-                                        }
-                                    }
+                                    finalProp = segmentData.StreetLightPrefab;
+
+                                    if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
                                 }
                             }
                             // mod end
 
                             if (finalProp != null && (layerMask & 1 << finalProp.m_prefabDataLayer) != 0)
                             {
-                                Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
-                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
-                                for (int j = 1; j <= num2; j += 2)
+                                var color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
+                                var randomizer = new Randomizer((int)(laneID + (uint)i));
+                                for (var j = 1; j <= num2; j += 2)
                                 {
                                     if (randomizer.Int32(100u) < prop.m_probability)
                                     {
-                                        float num5 = num4 + (float)j / (float)num2;
-                                        PropInfo variation = finalProp.GetVariation(ref randomizer);
-                                        float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
+                                        var num5 = num4 + (float)j / (float)num2;
+                                        var variation = finalProp.GetVariation(ref randomizer);
+                                        var scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                         if (prop.m_colorMode == NetLaneProps.ColorMode.Default)
                                         {
                                             color = variation.GetColor(ref randomizer);
                                         }
-                                        Vector3 vector = _this.m_bezier.Position(num5);
+                                        var vector = _this.m_bezier.Position(num5);
                                         if (propIndex != -1)
                                         {
                                             vector.y = (float)data.m_extraData.GetUShort(num3++) * 0.015625f;
@@ -376,7 +381,7 @@ namespace NetworkSkins.Props
                                         vector.y += prop.m_position.y;
                                         if (cameraInfo.CheckRenderDistance(vector, variation.m_maxRenderDistance))
                                         {
-                                            Vector3 vector2 = _this.m_bezier.Tangent(num5);
+                                            var vector2 = _this.m_bezier.Tangent(num5);
                                             if (vector2 != Vector3.zero)
                                             {
                                                 if (flag2)
@@ -390,10 +395,10 @@ namespace NetworkSkins.Props
                                                     vector.x += vector2.z * prop.m_position.x;
                                                     vector.z -= vector2.x * prop.m_position.x;
                                                 }
-                                                float num6 = Mathf.Atan2(vector2.x, -vector2.z);
+                                                var num6 = Mathf.Atan2(vector2.x, -vector2.z);
                                                 if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
                                                 {
-                                                    float num7 = endAngle - startAngle;
+                                                    var num7 = endAngle - startAngle;
                                                     if (num7 > 3.14159274f)
                                                     {
                                                         num7 -= 6.28318548f;
@@ -402,7 +407,7 @@ namespace NetworkSkins.Props
                                                     {
                                                         num7 += 6.28318548f;
                                                     }
-                                                    float num8 = startAngle + num7 * num5;
+                                                    var num8 = startAngle + num7 * num5;
                                                     num7 = num8 - num6;
                                                     if (num7 > 3.14159274f)
                                                     {
@@ -415,12 +420,12 @@ namespace NetworkSkins.Props
                                                     num6 += num7 * prop.m_cornerAngle;
                                                     if (num7 != 0f && prop.m_position.x != 0f)
                                                     {
-                                                        float num9 = Mathf.Tan(num7);
+                                                        var num9 = Mathf.Tan(num7);
                                                         vector.x += vector2.x * num9 * prop.m_position.x;
                                                         vector.z += vector2.z * num9 * prop.m_position.x;
                                                     }
                                                 }
-                                                num6 += prop.m_angle * 0.0174532924f;
+                                                num6 += prop_m_angle * 0.0174532924f;
                                                 PropInstance.RenderInstance(cameraInfo, variation, new InstanceID
                                                 {
                                                     NetSegment = segmentID
@@ -430,39 +435,31 @@ namespace NetworkSkins.Props
                                     }
                                 }
                             }
-                            TreeInfo finalTree = prop.m_finalTree;
+                            var finalTree = prop.m_finalTree;
 
                             // mod begin
                             // custom road trees
-                            if (finalTree != null)
+                            if (finalTree != null && segmentData != null)
                             {
-                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                if (segmentPropMap != null)
+                                if (laneInfo.m_position < 0) // Left Trees
                                 {
-                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                    if (def != null)
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
                                     {
-                                        if (laneInfo.m_position < 0) // Left Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
-                                            {
-                                                finalTree = def.treeLeftPrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position == 0) // Middle Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
-                                            {
-                                                finalTree = def.treeMiddlePrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position > 0) // Right Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
-                                            {
-                                                finalTree = def.treeRightPrefab;
-                                            }
-                                        }
+                                        finalTree = segmentData.TreeLeftPrefab;
+                                    }
+                                }
+                                else if (laneInfo.m_position == 0) // Middle Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                    {
+                                        finalTree = segmentData.TreeMiddlePrefab;
+                                    }
+                                }
+                                else // Right Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                    {
+                                        finalTree = segmentData.TreeRightPrefab;
                                     }
                                 }
                             }
@@ -470,16 +467,16 @@ namespace NetworkSkins.Props
 
                             if (finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0)
                             {
-                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                for (int k = 1; k <= num2; k += 2)
+                                var randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                for (var k = 1; k <= num2; k += 2)
                                 {
                                     if (randomizer2.Int32(100u) < prop.m_probability)
                                     {
-                                        float t = num4 + (float)k / (float)num2;
-                                        TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
-                                        float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
-                                        float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
-                                        Vector3 position = _this.m_bezier.Position(t);
+                                        var t = num4 + (float)k / (float)num2;
+                                        var variation2 = finalTree.GetVariation(ref randomizer2);
+                                        var scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
+                                        var brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
+                                        var position = _this.m_bezier.Position(t);
                                         if (propIndex != -1)
                                         {
                                             position.y = (float)data.m_extraData.GetUShort(num3++) * 0.015625f;
@@ -487,7 +484,7 @@ namespace NetworkSkins.Props
                                         position.y += prop.m_position.y;
                                         if (prop.m_position.x != 0f)
                                         {
-                                            Vector3 vector3 = _this.m_bezier.Tangent(t);
+                                            var vector3 = _this.m_bezier.Tangent(t);
                                             if (flag2)
                                             {
                                                 vector3 = -vector3;
@@ -508,58 +505,64 @@ namespace NetworkSkins.Props
         }
 
 
+        /// <summary>
+        /// Called when road segment is placed/released.
+        /// </summary>
+        /// <param name="laneID"></param>
+        /// <param name="laneInfo"></param>
+        /// <param name="startFlags"></param>
+        /// <param name="endFlags"></param>
+        /// <param name="invert"></param>
+        /// <param name="layer"></param>
+        /// <param name="vertexCount"></param>
+        /// <param name="triangleCount"></param>
+        /// <param name="objectCount"></param>
+        /// <param name="vertexArrays"></param>
+        /// <param name="hasProps"></param>
+        /// <returns></returns>
         public bool CalculateGroupData(uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, bool invert, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays, ref bool hasProps)
         {
-            ADebugger.instance.a_calculateGroupData++;// mod
-
-            bool result = false;
-            NetLaneProps laneProps = laneInfo.m_laneProps;
+            var result = false;
+            var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                bool flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
                 if (flag)
                 {
-                    NetNode.Flags flags = startFlags;
+                    var flags = startFlags;
                     startFlags = endFlags;
                     endFlags = flags;
                 }
-                int num = laneProps.m_props.Length;
-                for (int i = 0; i < num; i++)
-                {
-                    // mod begin
-                    var _this = NetManager.instance.m_lanes.m_buffer[laneID];
-                    // mod end
+                var num = laneProps.m_props.Length;
 
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                // mod begin
+                var _this = NetManager.instance.m_lanes.m_buffer[laneID];
+                var streetLightPrefabDataIndices = PropCustomizer.Instance.StreetLightPrefabDataIndices;
+                var segmentData = SegmentDataManager.Instance.SegmentToSegmentDataMap?[_this.m_segment];
+                // mod end
+
+                for (var i = 0; i < num; i++)
+                {
+                    var prop = laneProps.m_props[i];
                     if (prop.CheckFlags((NetLane.Flags)_this.m_flags, startFlags, endFlags))
                     {
                         if (_this.m_length >= prop.m_minLength)
                         {
-                            int num2 = 2;
+                            var num2 = 2;
                             if (prop.m_repeatDistance > 1f)
                             {
                                 num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
                             }
-                            PropInfo finalProp = prop.m_finalProp;
+                            var finalProp = prop.m_finalProp;
 
                             // mod begin
                             // custom street lights
-                            if (finalProp != null)
+                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
                             {
-                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                // Contains seems to be faster than array lookup
+                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
                                 {
-                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                    if (segmentPropMap != null)
-                                    {
-                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                        if (def != null)
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
-                                            {
-                                                finalProp = def.streetLightPrefab;
-                                            }
-                                        }
-                                    }
+                                    finalProp = segmentData.StreetLightPrefab;
                                 }
                             }
                             // mod end
@@ -569,12 +572,12 @@ namespace NetworkSkins.Props
                                 hasProps = true;
                                 if (finalProp.m_prefabDataLayer == layer || finalProp.m_effectLayer == layer)
                                 {
-                                    Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
-                                    for (int j = 1; j <= num2; j += 2)
+                                    var randomizer = new Randomizer((int)(laneID + (uint)i));
+                                    for (var j = 1; j <= num2; j += 2)
                                     {
                                         if (randomizer.Int32(100u) < prop.m_probability)
                                         {
-                                            PropInfo variation = finalProp.GetVariation(ref randomizer);
+                                            var variation = finalProp.GetVariation(ref randomizer);
                                             randomizer.Int32(10000u);
                                             variation.GetColor(ref randomizer);
                                             if (PropInstance.CalculateGroupData(variation, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays))
@@ -585,39 +588,31 @@ namespace NetworkSkins.Props
                                     }
                                 }
                             }
-                            TreeInfo finalTree = prop.m_finalTree;
+                            var finalTree = prop.m_finalTree;
 
                             // mod begin
                             // custom road trees
-                            if (finalTree != null)
+                            if (finalTree != null && segmentData != null)
                             {
-                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                if (segmentPropMap != null)
+                                if (laneInfo.m_position < 0) // Left Trees
                                 {
-                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                    if (def != null)
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
                                     {
-                                        if (laneInfo.m_position < 0) // Left Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
-                                            {
-                                                finalTree = def.treeLeftPrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position == 0) // Middle Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
-                                            {
-                                                finalTree = def.treeMiddlePrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position > 0) // Right Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
-                                            {
-                                                finalTree = def.treeRightPrefab;
-                                            }
-                                        }
+                                        finalTree = segmentData.TreeLeftPrefab;
+                                    }
+                                }
+                                else if (laneInfo.m_position == 0) // Middle Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                    {
+                                        finalTree = segmentData.TreeMiddlePrefab;
+                                    }
+                                }
+                                else // Right Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                    {
+                                        finalTree = segmentData.TreeRightPrefab;
                                     }
                                 }
                             }
@@ -628,8 +623,8 @@ namespace NetworkSkins.Props
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
-                                    Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                    for (int k = 1; k <= num2; k += 2)
+                                    var randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                    for (var k = 1; k <= num2; k += 2)
                                     {
                                         if (randomizer2.Int32(100u) < prop.m_probability)
                                         {
@@ -651,39 +646,62 @@ namespace NetworkSkins.Props
             return result;
         }
 
+        /// <summary>
+        /// Called when road segment is placed/released.
+        /// </summary>
+        /// <param name="segmentID"></param>
+        /// <param name="laneID"></param>
+        /// <param name="laneInfo"></param>
+        /// <param name="startFlags"></param>
+        /// <param name="endFlags"></param>
+        /// <param name="startAngle"></param>
+        /// <param name="endAngle"></param>
+        /// <param name="invert"></param>
+        /// <param name="terrainHeight"></param>
+        /// <param name="layer"></param>
+        /// <param name="vertexIndex"></param>
+        /// <param name="triangleIndex"></param>
+        /// <param name="groupPosition"></param>
+        /// <param name="data"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <param name="maxRenderDistance"></param>
+        /// <param name="maxInstanceDistance"></param>
+        /// <param name="hasProps"></param>
         public void PopulateGroupData(ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, float startAngle, float endAngle, bool invert, bool terrainHeight, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool hasProps)
         {
-            ADebugger.instance.a_populateGroupData++;// mod
-
-            NetLaneProps laneProps = laneInfo.m_laneProps;
+            var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                bool flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
-                bool flag2 = flag != invert;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag2 = flag != invert;
                 if (flag)
                 {
-                    NetNode.Flags flags = startFlags;
+                    var flags = startFlags;
                     startFlags = endFlags;
                     endFlags = flags;
                 }
-                int num = laneProps.m_props.Length;
-                for (int i = 0; i < num; i++)
-                {
-                    // mod begin
-                    var _this = NetManager.instance.m_lanes.m_buffer[laneID];
-                    // mod end
+                var num = laneProps.m_props.Length;
 
-                    NetLaneProps.Prop prop = laneProps.m_props[i];
+                // mod begin
+                var _this = NetManager.instance.m_lanes.m_buffer[laneID];
+                var streetLightPrefabDataIndices = PropCustomizer.Instance.StreetLightPrefabDataIndices;
+                var segmentData = SegmentDataManager.Instance.SegmentToSegmentDataMap?[_this.m_segment];
+                // mod end
+
+                for (var i = 0; i < num; i++)
+                {
+                    var prop = laneProps.m_props[i];
                     if (prop.CheckFlags((NetLane.Flags)_this.m_flags, startFlags, endFlags))
                     {
                         if (_this.m_length >= prop.m_minLength)
                         {
-                            int num2 = 2;
+                            var num2 = 2;
                             if (prop.m_repeatDistance > 1f)
                             {
                                 num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
                             }
-                            float num3 = prop.m_segmentOffset * 0.5f;
+                            var num3 = prop.m_segmentOffset * 0.5f;
                             if (_this.m_length != 0f)
                             {
                                 num3 = Mathf.Clamp(num3 + prop.m_position.z / _this.m_length, -0.5f, 0.5f);
@@ -692,26 +710,19 @@ namespace NetworkSkins.Props
                             {
                                 num3 = -num3;
                             }
-                            PropInfo finalProp = prop.m_finalProp;
+                            var finalProp = prop.m_finalProp;
 
                             // mod begin
                             // custom street lights
-                            if (finalProp != null)
+                            var prop_m_angle = prop.m_angle;
+                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
                             {
-                                if (PropCustomizer.instance.availableStreetLights.Contains(finalProp))
+                                // Contains seems to be faster than array lookup
+                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
                                 {
-                                    var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                    if (segmentPropMap != null)
-                                    {
-                                        var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                        if (def != null)
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.STREET_LIGHT) != 0)
-                                            {
-                                                finalProp = def.streetLightPrefab;
-                                            }
-                                        }
-                                    }
+                                    finalProp = segmentData.StreetLightPrefab;
+
+                                    if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
                                 }
                             }
                             // mod end
@@ -721,26 +732,26 @@ namespace NetworkSkins.Props
                                 hasProps = true;
                                 if (finalProp.m_prefabDataLayer == layer || finalProp.m_effectLayer == layer)
                                 {
-                                    Color color = Color.white;
-                                    Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
-                                    for (int j = 1; j <= num2; j += 2)
+                                    var color = Color.white;
+                                    var randomizer = new Randomizer((int)(laneID + (uint)i));
+                                    for (var j = 1; j <= num2; j += 2)
                                     {
                                         if (randomizer.Int32(100u) < prop.m_probability)
                                         {
-                                            float num4 = num3 + (float)j / (float)num2;
-                                            PropInfo variation = finalProp.GetVariation(ref randomizer);
-                                            float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
+                                            var num4 = num3 + (float)j / (float)num2;
+                                            var variation = finalProp.GetVariation(ref randomizer);
+                                            var scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                             if (prop.m_colorMode == NetLaneProps.ColorMode.Default)
                                             {
                                                 color = variation.GetColor(ref randomizer);
                                             }
-                                            Vector3 vector = _this.m_bezier.Position(num4);
+                                            var vector = _this.m_bezier.Position(num4);
                                             if (terrainHeight)
                                             {
                                                 vector.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector);
                                             }
                                             vector.y += prop.m_position.y;
-                                            Vector3 vector2 = _this.m_bezier.Tangent(num4);
+                                            var vector2 = _this.m_bezier.Tangent(num4);
                                             if (vector2 != Vector3.zero)
                                             {
                                                 if (flag2)
@@ -754,10 +765,10 @@ namespace NetworkSkins.Props
                                                     vector.x += vector2.z * prop.m_position.x;
                                                     vector.z -= vector2.x * prop.m_position.x;
                                                 }
-                                                float num5 = Mathf.Atan2(vector2.x, -vector2.z);
+                                                var num5 = Mathf.Atan2(vector2.x, -vector2.z);
                                                 if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
                                                 {
-                                                    float num6 = endAngle - startAngle;
+                                                    var num6 = endAngle - startAngle;
                                                     if (num6 > 3.14159274f)
                                                     {
                                                         num6 -= 6.28318548f;
@@ -766,7 +777,7 @@ namespace NetworkSkins.Props
                                                     {
                                                         num6 += 6.28318548f;
                                                     }
-                                                    float num7 = startAngle + num6 * num4;
+                                                    var num7 = startAngle + num6 * num4;
                                                     num6 = num7 - num5;
                                                     if (num6 > 3.14159274f)
                                                     {
@@ -779,53 +790,45 @@ namespace NetworkSkins.Props
                                                     num5 += num6 * prop.m_cornerAngle;
                                                     if (num6 != 0f && prop.m_position.x != 0f)
                                                     {
-                                                        float num8 = Mathf.Tan(num6);
+                                                        var num8 = Mathf.Tan(num6);
                                                         vector.x += vector2.x * num8 * prop.m_position.x;
                                                         vector.z += vector2.z * num8 * prop.m_position.x;
                                                     }
                                                 }
-                                                InstanceID id = default(InstanceID);
+                                                var id = default(InstanceID);
                                                 id.NetSegment = segmentID;
-                                                num5 += prop.m_angle * 0.0174532924f;
+                                                num5 += prop_m_angle * 0.0174532924f;
                                                 PropInstance.PopulateGroupData(variation, layer, id, vector, scale, num5, color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                             }
                                         }
                                     }
                                 }
                             }
-                            TreeInfo finalTree = prop.m_finalTree;
+                            var finalTree = prop.m_finalTree;
 
                             // mod begin
                             // custom road trees
-                            if (finalTree != null)
+                            if (finalTree != null && segmentData != null)
                             {
-                                var segmentPropMap = PropCustomizer.instance.segmentPropMap;
-                                if (segmentPropMap != null)
+                                if (laneInfo.m_position < 0) // Left Trees
                                 {
-                                    var def = segmentPropMap[NetManager.instance.m_lanes.m_buffer[laneID].m_segment];
-                                    if (def != null)
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
                                     {
-                                        if (laneInfo.m_position < 0) // Left Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_LEFT) != 0)
-                                            {
-                                                finalTree = def.treeLeftPrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position == 0) // Middle Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_MIDDLE) != 0)
-                                            {
-                                                finalTree = def.treeMiddlePrefab;
-                                            }
-                                        }
-                                        else if (laneInfo.m_position > 0) // Right Trees
-                                        {
-                                            if ((def.features & SegmentPropDef.Features.TREE_RIGHT) != 0)
-                                            {
-                                                finalTree = def.treeRightPrefab;
-                                            }
-                                        }
+                                        finalTree = segmentData.TreeLeftPrefab;
+                                    }
+                                }
+                                else if (laneInfo.m_position == 0) // Middle Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                    {
+                                        finalTree = segmentData.TreeMiddlePrefab;
+                                    }
+                                }
+                                else // Right Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                    {
+                                        finalTree = segmentData.TreeRightPrefab;
                                     }
                                 }
                             }
@@ -836,16 +839,16 @@ namespace NetworkSkins.Props
                                 hasProps = true;
                                 if (finalTree.m_prefabDataLayer == layer)
                                 {
-                                    Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                    for (int k = 1; k <= num2; k += 2)
+                                    var randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                    for (var k = 1; k <= num2; k += 2)
                                     {
                                         if (randomizer2.Int32(100u) < prop.m_probability)
                                         {
-                                            float t = num3 + (float)k / (float)num2;
-                                            TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
-                                            float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
-                                            float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
-                                            Vector3 vector3 = _this.m_bezier.Position(t);
+                                            var t = num3 + (float)k / (float)num2;
+                                            var variation2 = finalTree.GetVariation(ref randomizer2);
+                                            var scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
+                                            var brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
+                                            var vector3 = _this.m_bezier.Position(t);
                                             if (terrainHeight)
                                             {
                                                 vector3.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector3);
@@ -853,7 +856,7 @@ namespace NetworkSkins.Props
                                             vector3.y += prop.m_position.y;
                                             if (prop.m_position.x != 0f)
                                             {
-                                                Vector3 vector4 = _this.m_bezier.Tangent(t);
+                                                var vector4 = _this.m_bezier.Tangent(t);
                                                 if (flag2)
                                                 {
                                                     vector4 = -vector4;

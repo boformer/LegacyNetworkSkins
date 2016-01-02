@@ -1,8 +1,5 @@
-﻿using ColossalFramework.UI;
+﻿using System.Collections.Generic;
 using NetworkSkins.UI;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 
 namespace NetworkSkins.Pillars
 {
@@ -33,8 +30,9 @@ namespace NetworkSkins.Pillars
 
                 foreach (var pillar in availablePillars)
                 {
-                    string itemName = UIUtil.GenerateBeautifiedPrefabName(pillar, defaultPillar);
-
+                    var itemName = UIUtil.GenerateBeautifiedPrefabName(pillar);
+                    itemName = BeautifyNameEvenMore(itemName);
+                    if(pillar == defaultPillar) itemName += " (Default)";
                     DropDown.AddItem(itemName);
 
                     if (pillar == activePillar) DropDown.selectedIndex = DropDown.items.Length - 1;
@@ -46,6 +44,24 @@ namespace NetworkSkins.Pillars
                 }
             }
             return false;
+        }
+
+        private string BeautifyNameEvenMore(string itemName)
+        {
+            switch (itemName)
+            {
+                case "Highway Bridge Pillar": return "Medium Concrete Pillar";
+                case "Road Small Bridge Pillar": return "Small Double Concrete Pillar";
+                case "Medium Bridge Pillar": return "Medium Double Concrete Pillar";
+                case "Highway Ramp Pillar": return "Small Concrete Pillar";
+                case "Highway Bridge Suspension Pillar": return "Stacked Ornate Concrete Arch";
+                case "Large Road Bridge Suspension Pillar": return "Medium Ornate Concrete Arch";
+                case "Railway Bridge Pillar": return "Wide Concrete Pillar";
+                case "Railway Elevated Pillar": return "Double Steal Beams";
+                case "Pedestrian Elevated Pillar": return "Slim Concrete Pillar";
+                case "Large Road Bike Bridge Suspension Pillar": return "Wide Ornate Concrete Arch";
+                default: return itemName;
+            }
         }
 
         protected override void OnSelectionChanged(int index)

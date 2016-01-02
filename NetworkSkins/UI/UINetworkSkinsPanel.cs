@@ -1,36 +1,35 @@
-﻿using ColossalFramework.UI;
-using NetworkSkins.Meshes;
+﻿using System;
+using System.IO;
+using System.Linq;
+using CimTools.Utilities;
+using ColossalFramework.UI;
+using NetworkSkins.Net;
 using NetworkSkins.Pillars;
 using NetworkSkins.Props;
-using NetworkSkins.Net;
-using System;
-using System.Linq;
 using UnityEngine;
-using System.IO;
-using CimTools.Utilities;
 
 namespace NetworkSkins.UI
 {
     public class UINetworkSkinsPanel : UIPanel
     {
-        public const string ATLAS = "NetworkSkinsSprites";
+        public const string Atlas = "NetworkSkinsSprites";
         
-        public const int PADDING_TOP = 9;
-        public const int PADDING = 7;
-        public const int PAGES_PADDING = 10;
-        public const int TAB_HEIGHT = 32;
-        public const int PAGE_HEIGHT = 300;
-        public const int WIDTH = 310;
+        public const int PaddingTop = 9;
+        public const int Padding = 7;
+        public const int PagesPadding = 10;
+        public const int TabHeight = 32;
+        public const int PageHeight = 140;//300;
+        public const int Width = 360;//310;
         
-        private UIDragHandle titleBar;
-        private UITabstrip tabstrip;
+        private UIDragHandle _titleBar;
+        private UITabstrip _tabstrip;
 
         // The panels containing the net options (e.g. dropdowns)
-        private UIPanel[] netTypePages; 
+        private UIPanel[] _netTypePages; 
 
-        private INetToolWrapper netToolWrapper;
-        private NetInfo selectedPrefab;
-        private NetInfo[] subPrefabs;
+        private INetToolWrapper _netToolWrapper;
+        private NetInfo _selectedPrefab;
+        private NetInfo[] _subPrefabs;
 
         public override void Awake()
         {
@@ -39,44 +38,43 @@ namespace NetworkSkins.UI
             LoadSprites();
 
             this.backgroundSprite = "MenuPanel2";
-            this.relativePosition = new Vector3(0f, 440f);
-            this.width = WIDTH + 2 * PADDING;
+            this.width = Width + 2 * Padding;
             //this.padding = new RectOffset(PADDING, 0, PADDING, 0);
 
-            titleBar = this.AddUIComponent<UIDragHandle>();
-            titleBar.name = "TitlePanel";
-            titleBar.width = this.width;
-            titleBar.height = TAB_HEIGHT + PADDING_TOP;
-            titleBar.target = this;
-            titleBar.relativePosition = new Vector3(0, 0);
+            _titleBar = this.AddUIComponent<UIDragHandle>();
+            _titleBar.name = "TitlePanel";
+            _titleBar.width = this.width;
+            _titleBar.height = TabHeight + PaddingTop;
+            _titleBar.target = this;
+            _titleBar.relativePosition = new Vector3(0, 0);
 
             // display a drag cursor sprite in the top right corner of the panel
-            var dragSprite = titleBar.AddUIComponent<UISprite>();
-            dragSprite.atlas = SpriteUtilities.GetAtlas(ATLAS);
+            var dragSprite = _titleBar.AddUIComponent<UISprite>();
+            dragSprite.atlas = SpriteUtilities.GetAtlas(Atlas);
             dragSprite.spriteName = "DragCursor";
-            dragSprite.relativePosition = new Vector3(WIDTH - 20, PADDING_TOP + 1);
+            dragSprite.relativePosition = new Vector3(Width - 20, PaddingTop + 1);
             dragSprite.MakePixelPerfect();
 
-            tabstrip = titleBar.AddUIComponent<UITabstrip>();
-            tabstrip.relativePosition = new Vector3(PADDING, PADDING_TOP, 0);
-            tabstrip.width = WIDTH;
-            tabstrip.height = TAB_HEIGHT;
-            tabstrip.tabPages = this.AddUIComponent<UITabContainer>();
-            tabstrip.tabPages.width = this.width;
-            tabstrip.tabPages.height = PAGE_HEIGHT;
-            tabstrip.tabPages.relativePosition = new Vector3(0, titleBar.height);
-            tabstrip.tabPages.padding = new RectOffset(PAGES_PADDING, PAGES_PADDING, PAGES_PADDING, PAGES_PADDING);
-            tabstrip.padding.right = 0;
+            _tabstrip = _titleBar.AddUIComponent<UITabstrip>();
+            _tabstrip.relativePosition = new Vector3(Padding, PaddingTop, 0);
+            _tabstrip.width = Width;
+            _tabstrip.height = TabHeight;
+            _tabstrip.tabPages = this.AddUIComponent<UITabContainer>();
+            _tabstrip.tabPages.width = this.width;
+            _tabstrip.tabPages.height = PageHeight;
+            _tabstrip.tabPages.relativePosition = new Vector3(0, _titleBar.height);
+            _tabstrip.tabPages.padding = new RectOffset(PagesPadding, PagesPadding, PagesPadding, PagesPadding);
+            _tabstrip.padding.right = 0;
 
             // Add 4 tabs and 4 pages
-            UITabstrip keyMappingTabstrip = GameObject.Find("KeyMappingTabStrip").GetComponent<UITabstrip>();
-            UIButton buttonTemplate = keyMappingTabstrip.GetComponentInChildren<UIButton>();
+            var keyMappingTabstrip = GameObject.Find("KeyMappingTabStrip").GetComponent<UITabstrip>();
+            var buttonTemplate = keyMappingTabstrip.GetComponentInChildren<UIButton>();
 
-            netTypePages = new UIPanel[NetUtil.NET_TYPE_NAMES.Length];
+            _netTypePages = new UIPanel[NetUtil.NET_TYPE_NAMES.Length];
 
-            for (int i = 0; i < NetUtil.NET_TYPE_NAMES.Length; i++)
+            for (var i = 0; i < NetUtil.NET_TYPE_NAMES.Length; i++)
             {
-                var tab = tabstrip.AddTab(NetUtil.NET_TYPE_NAMES[i], buttonTemplate, true);
+                var tab = _tabstrip.AddTab(NetUtil.NET_TYPE_NAMES[i], buttonTemplate, true);
                 tab.textPadding.top = 8;
                 tab.textPadding.bottom = 8;
                 tab.textPadding.left = 10;
@@ -90,43 +88,50 @@ namespace NetworkSkins.UI
                 tab.focusedColor = new Color32(205, 205, 205, 255);
                 tab.disabledTextColor = buttonTemplate.disabledTextColor;
 
-                var page = tabstrip.tabPages.components.Last() as UIPanel;
+                var page = _tabstrip.tabPages.components.Last() as UIPanel;
                 page.autoLayoutDirection = LayoutDirection.Vertical;
-                page.autoLayoutPadding = new RectOffset(0, 0, 0, PADDING);
+                page.autoLayoutPadding = new RectOffset(0, 0, 0, Padding);
                 page.autoLayout = true;
                 page.isVisible = false;
 
                 // TODO add scrolling + autofitting
 
-                netTypePages[i] = page;
+                _netTypePages[i] = page;
             }
             
             this.FitChildren();
 
-            netToolWrapper = NetUtil.GenerateNetToolWrapper();
-            if (netToolWrapper == null) throw new Exception("NetworkSkins Error: NetToolWrapper is null!");
+
+            _netToolWrapper = NetUtil.GenerateNetToolWrapper();
+            if (_netToolWrapper == null) throw new Exception("NetworkSkins Error: NetToolWrapper is null!");
 
             // Add some example options
-            GetPage(NetType.GROUND).AddUIComponent<UILightOption>();
-            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.LEFT;
-            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.MIDDLE;
-            GetPage(NetType.GROUND).AddUIComponent<UITreeOption>().LanePosition = LanePosition.RIGHT;
+            GetPage(NetType.Ground).AddUIComponent<UILightOption>();
+            GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Left;
+            GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Middle;
+            GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Right;
 
-            GetPage(NetType.ELEVATED).AddUIComponent<UILightOption>();
-            GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.BRIDGE_PILLAR;
-            GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
+            GetPage(NetType.Elevated).AddUIComponent<UILightOption>();
+            GetPage(NetType.Elevated).AddUIComponent<UIPillarOption>().PillarType = PillarType.BridgePillar;
+            //GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
 
-            GetPage(NetType.BRIDGE).AddUIComponent<UILightOption>();
-            GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.BRIDGE_PILLAR;
-            GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
-            GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();
+            GetPage(NetType.Bridge).AddUIComponent<UILightOption>();
+            GetPage(NetType.Bridge).AddUIComponent<UIPillarOption>().PillarType = PillarType.BridgePillar;
+            //GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
+            //GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();
 
-            tabstrip.selectedIndex = (int)NetType.GROUND;
+            _tabstrip.startSelectedIndex = (int)NetType.Ground;
+        }
+
+        public override void Start()
+        {
+            anchor = UIAnchorStyle.Right;
+            absolutePosition = new Vector3(Mathf.Floor((GetUIView().fixedWidth - width - 50)), Mathf.Floor((GetUIView().fixedHeight - height - 50)));
         }
 
         private UIPanel GetPage(NetType netType) 
         {
-            return netTypePages[(int)netType];
+            return _netTypePages[(int)netType];
         }
 
         /// <summary>
@@ -136,15 +141,15 @@ namespace NetworkSkins.UI
         {
             try
             {
-                if (SpriteUtilities.GetAtlas(ATLAS) != null) return;
+                if (SpriteUtilities.GetAtlas(Atlas) != null) return;
 
-                bool atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.GetModPath(), "sprites.png"), ATLAS);
+                var atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.GetModPath(), "sprites.png"), Atlas);
 
                 if (atlasSuccess)
                 {
-                    bool spriteSuccess = true;
+                    var spriteSuccess = true;
 
-                    spriteSuccess = SpriteUtilities.AddSpriteToAtlas(new Rect(new Vector2(0, 0), new Vector2(24, 24)), "DragCursor", ATLAS) && spriteSuccess;
+                    spriteSuccess = SpriteUtilities.AddSpriteToAtlas(new Rect(new Vector2(0, 0), new Vector2(24, 24)), "DragCursor", Atlas) && spriteSuccess;
 
                     // TODO add sprites for tunnel, ground, elevated, bridge?
 
@@ -172,61 +177,72 @@ namespace NetworkSkins.UI
             base.Update();
 
             // Fine Road Heights Net Tool support
-            var newSelectedPrefab = netToolWrapper.GetCurrentPrefab();
+            var newSelectedPrefab = _netToolWrapper.GetCurrentPrefab();
 
             if (newSelectedPrefab != null)
             {
-                if (selectedPrefab == newSelectedPrefab) return;
-                selectedPrefab = newSelectedPrefab;
+                if (_selectedPrefab == newSelectedPrefab) return;
+                _selectedPrefab = newSelectedPrefab;
 
-                var newSubPrefabs = NetUtil.GetSubPrefabs(selectedPrefab);
+                var newSubPrefabs = NetUtil.GetSubPrefabs(_selectedPrefab);
 
-                if (subPrefabs != null && subPrefabs.SequenceEqual(newSubPrefabs)) return;
-                subPrefabs = newSubPrefabs;
+                if (_subPrefabs != null && _subPrefabs.SequenceEqual(newSubPrefabs)) return;
+                _subPrefabs = newSubPrefabs;
 
-                int visibleTabCount = 0;
-                int firstVisibleIndex = -1;
+                var visibleTabCount = 0;
+                var firstVisibleIndex = -1;
 
                 // Populate tabs and options
-                for (int i = 0; i < subPrefabs.Length; i++) 
+                for (var i = 0; i < _subPrefabs.Length; i++) 
                 {
                     var tabName = NetUtil.NET_TYPE_NAMES[i];
                     
-                    if (subPrefabs[i] != null)
+                    if (_subPrefabs[i] != null)
                     {
-                        visibleTabCount++;
-
                         if (firstVisibleIndex < 0) firstVisibleIndex = i;
                         
-                        tabstrip.ShowTab(tabName);
+                        var visibleOptionCount = 0;
 
-                        foreach (UIComponent component in netTypePages[i].components)
+                        foreach (var component in _netTypePages[i].components)
                         {
-                            var option = component as UINetworkOption;
+                            var option = component as UIOption;
                             if (option == null) continue;
 
                             // Pass the current prefab to the context-sensitive option
-                            option.Populate(subPrefabs[i]);
+                            if (option.Populate(_subPrefabs[i])) visibleOptionCount++;
+                        }
+
+                        if (visibleOptionCount > 0)
+                        {
+                            visibleTabCount++;
+                            _tabstrip.ShowTab(tabName);
+                        }
+                        else
+                        {
+                            _tabstrip.HideTab(tabName);
                         }
                     }
                     else
                     {
                         // Hide unrelevant tabs
-                        tabstrip.HideTab(tabName);
+                        _tabstrip.HideTab(tabName);
                     }
                 }
 
-                if (subPrefabs[tabstrip.selectedIndex] == null) 
+                if (_subPrefabs[_tabstrip.selectedIndex] == null)
                 {
-                    var groundIndex = (int)NetType.GROUND;
-                    if (subPrefabs[groundIndex] != null)
+                    if (_subPrefabs[(int)NetType.Ground] != null)
                     {
-                        tabstrip.selectedIndex = groundIndex;
+                        _tabstrip.selectedIndex = (int)NetType.Ground;
                     }
                     else if (firstVisibleIndex >= 0)
                     {
-                        tabstrip.selectedIndex = firstVisibleIndex;
+                        _tabstrip.selectedIndex = firstVisibleIndex;
                     }
+                }
+                else
+                {
+                    _tabstrip.selectedIndex = _tabstrip.selectedIndex;
                 }
 
                 isVisible = visibleTabCount > 0;
@@ -236,8 +252,8 @@ namespace NetworkSkins.UI
             if (isVisible)
             {
                 isVisible = false;
-                selectedPrefab = null;
-                subPrefabs = null;
+                _selectedPrefab = null;
+                _subPrefabs = null;
             }
         }
     }

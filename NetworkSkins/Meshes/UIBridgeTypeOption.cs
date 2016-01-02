@@ -1,6 +1,4 @@
-﻿using ColossalFramework.UI;
-using NetworkSkins.UI;
-using UnityEngine;
+﻿using NetworkSkins.UI;
 
 namespace NetworkSkins.Meshes
 {
@@ -14,7 +12,7 @@ namespace NetworkSkins.Meshes
 
         protected override bool PopulateDropDown()
         {
-            DropDown.items = new string[] { "Girder Bridge", "Truss Bridge", "Steel Arch Bridge", "Stone Arch Bridge", "Suspension Bridge" };
+            DropDown.items = new[] { "Girder Bridge", "Truss Bridge", "Steel Arch Bridge", "Stone Arch Bridge", "Suspension Bridge" };
             DropDown.selectedIndex = 1;
             return true;
         }

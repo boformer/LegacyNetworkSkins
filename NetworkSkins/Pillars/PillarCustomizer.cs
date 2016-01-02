@@ -1,11 +1,7 @@
-﻿using ColossalFramework.Packaging;
-using ColossalFramework.Plugins;
-using ColossalFramework.UI;
-using ICities;
-using NetworkSkins.Net;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
+using ColossalFramework.Packaging;
+using ICities;
 
 namespace NetworkSkins.Pillars
 {
@@ -13,7 +9,7 @@ namespace NetworkSkins.Pillars
     {
         public static PillarCustomizer instance;
         
-        private readonly List<BuildingInfo> pillarBuildings = new List<BuildingInfo>();
+        private readonly List<BuildingInfo> availablePillars = new List<BuildingInfo>();
 
         private readonly Dictionary<NetInfo, BuildingInfo> defaultBridgePillars = new Dictionary<NetInfo, BuildingInfo>();
         private readonly Dictionary<NetInfo, BuildingInfo> defaultMiddlePillars = new Dictionary<NetInfo, BuildingInfo>();
@@ -38,6 +34,8 @@ namespace NetworkSkins.Pillars
                 SaveDefaults(prefab);
             }
 
+            availablePillars.Add(null); // no pillar = null;
+
             // support for custom pillars
             for (uint i = 0; i < PrefabCollection<BuildingInfo>.LoadedCount(); i++)
             {
@@ -49,18 +47,17 @@ namespace NetworkSkins.Pillars
                 if (prefab.m_buildingAI.GetType() != typeof(BuildingAI)) continue;
 
                 var asset = PackageManager.FindAssetByName(prefab.name);
-                if (asset == null || asset.package == null) continue;
 
-                string crpPath = asset.package.packagePath;
+                var crpPath = asset?.package?.packagePath;
                 if (crpPath == null) continue;
 
-                string pillarConfigPath = Path.Combine(Path.GetDirectoryName(crpPath), "Pillar.xml");
+                var pillarConfigPath = Path.Combine(Path.GetDirectoryName(crpPath), "Pillar.xml");
 
                 // TODO parse the config file
 
                 if (File.Exists(pillarConfigPath)) 
                 {
-                    pillarBuildings.Add(prefab);
+                    availablePillars.Add(prefab);
                 }
             }
 
@@ -72,14 +69,14 @@ namespace NetworkSkins.Pillars
             // Restore bridge pillar defaults
             foreach (var prefab in defaultBridgePillars.Keys) 
             {
-                SetPillar(prefab, PillarType.BRIDGE_PILLAR, defaultBridgePillars[prefab]);
+                SetPillar(prefab, PillarType.BridgePillar, defaultBridgePillars[prefab]);
             }
             defaultBridgePillars.Clear();
 
             // Restore middle pillar defaults
             foreach (var prefab in defaultMiddlePillars.Keys)
             {
-                SetPillar(prefab, PillarType.MIDDLE_PILLAR, defaultMiddlePillars[prefab]);
+                SetPillar(prefab, PillarType.MiddlePillar, defaultMiddlePillars[prefab]);
             }
             defaultMiddlePillars.Clear();
         }
@@ -91,7 +88,7 @@ namespace NetworkSkins.Pillars
 
         public BuildingInfo GetDefaultPillar(NetInfo prefab, PillarType type) 
         {
-            var map = (type == PillarType.BRIDGE_PILLAR) ? defaultBridgePillars : defaultMiddlePillars;
+            var map = (type == PillarType.BridgePillar) ? defaultBridgePillars : defaultMiddlePillars;
             
             BuildingInfo pillar;
             if (!map.TryGetValue(prefab, out pillar)) return null;
@@ -108,14 +105,14 @@ namespace NetworkSkins.Pillars
 
             if (ta != null)
             {
-                if (type == PillarType.BRIDGE_PILLAR) 
+                if (type == PillarType.BridgePillar) 
                     ta.m_bridgePillarInfo = pillar;
                 else
                     ta.m_middlePillarInfo = pillar;
             }
             else if (ra != null)
             {
-                if (type == PillarType.BRIDGE_PILLAR)
+                if (type == PillarType.BridgePillar)
                     ra.m_bridgePillarInfo = pillar;
                 else
                     ra.m_middlePillarInfo = pillar;
@@ -128,16 +125,16 @@ namespace NetworkSkins.Pillars
 
         private void SaveDefaults(NetInfo prefab) 
         {
-            BuildingInfo bridgePillar = GetActivePillar(prefab, PillarType.BRIDGE_PILLAR);
-            BuildingInfo middlePillar = GetActivePillar(prefab, PillarType.MIDDLE_PILLAR);
+            var bridgePillar = GetActivePillar(prefab, PillarType.BridgePillar);
+            var middlePillar = GetActivePillar(prefab, PillarType.MiddlePillar);
 
             // save default
             if (bridgePillar != null) defaultBridgePillars.Add(prefab, bridgePillar);
             if (middlePillar != null) defaultMiddlePillars.Add(prefab, middlePillar);
 
             // add to list of available pillars
-            if (bridgePillar != null && !pillarBuildings.Contains(bridgePillar)) pillarBuildings.Add(bridgePillar);
-            if (middlePillar != null && !pillarBuildings.Contains(middlePillar)) pillarBuildings.Add(middlePillar);
+            if (bridgePillar != null && !availablePillars.Contains(bridgePillar)) availablePillars.Add(bridgePillar);
+            if (middlePillar != null && !availablePillars.Contains(middlePillar)) availablePillars.Add(middlePillar);
         }
 
         public BuildingInfo GetActivePillar(NetInfo prefab, PillarType type) 
@@ -150,15 +147,15 @@ namespace NetworkSkins.Pillars
 
             if (ta != null)
             {
-                return (type == PillarType.BRIDGE_PILLAR) ? ta.m_bridgePillarInfo : ta.m_middlePillarInfo;
+                return (type == PillarType.BridgePillar) ? ta.m_bridgePillarInfo : ta.m_middlePillarInfo;
             }
             else if (ra != null)
             {
-                return (type == PillarType.BRIDGE_PILLAR) ? ra.m_bridgePillarInfo : ra.m_middlePillarInfo;
+                return (type == PillarType.BridgePillar) ? ra.m_bridgePillarInfo : ra.m_middlePillarInfo;
             }
             else if (pa != null)
             {
-                return (type == PillarType.BRIDGE_PILLAR) ? pa.m_bridgePillarInfo : null;
+                return (type == PillarType.BridgePillar) ? pa.m_bridgePillarInfo : null;
             }
             else
             {
@@ -172,11 +169,10 @@ namespace NetworkSkins.Pillars
             
             if (prefab.m_netAI is TrainTrackBridgeAI || prefab.m_netAI is RoadBridgeAI || prefab.m_netAI is PedestrianBridgeAI)
             {
-                if (pillarType == PillarType.MIDDLE_PILLAR)
+                if (pillarType == PillarType.MiddlePillar)
                 {
                     var ta = prefab.m_netAI as TrainTrackBridgeAI;
                     var ra = prefab.m_netAI as RoadBridgeAI;
-                    var pa = prefab.m_netAI as PedestrianBridgeAI;
 
                     if (ta != null)
                     {
@@ -186,27 +182,13 @@ namespace NetworkSkins.Pillars
                     {
                         if (!ra.m_doubleLength) return null;
                     }
-                    else if (pa != null)
-                    {
-                        return null;
-                    }
                     else
                     {
                         return null;
                     }
                 }
-                
-                var availablePillars = new List<BuildingInfo>();
-
-                // no pillars
-                availablePillars.Add(null);
 
                 // TODO only return relevant pillars
-                foreach(var pillar in pillarBuildings) 
-                {
-                    availablePillars.Add(pillar);
-                }
-
                 return availablePillars;
             }
             else

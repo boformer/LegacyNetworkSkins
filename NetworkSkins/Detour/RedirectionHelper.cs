@@ -24,7 +24,6 @@ THE SOFTWARE.
 
 using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace NetworkSkins.Detour
 {
@@ -76,12 +75,12 @@ namespace NetworkSkins.Detour
         /// <param name="target"></param>
         public static RedirectCallsState PatchJumpTo(IntPtr site, IntPtr target)
         {
-            RedirectCallsState state = new RedirectCallsState();
+            var state = new RedirectCallsState();
 
             // R11 is volatile.
             unsafe
             {
-                byte* sitePtr = (byte*)site.ToPointer();
+                var sitePtr = (byte*)site.ToPointer();
                 state.a = *sitePtr;
                 state.b = *(sitePtr + 1);
                 state.c = *(sitePtr + 10);
@@ -104,7 +103,7 @@ namespace NetworkSkins.Detour
         {
             unsafe
             {
-                byte* sitePtr = (byte*)site.ToPointer();
+                var sitePtr = (byte*)site.ToPointer();
                 *sitePtr = state.a; // mov r11, target
                 *(sitePtr + 1) = state.b;
                 *((ulong*)(sitePtr + 2)) = state.f;

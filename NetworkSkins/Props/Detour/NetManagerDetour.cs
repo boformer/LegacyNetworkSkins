@@ -1,8 +1,7 @@
-﻿using ColossalFramework;
-using ColossalFramework.Math;
-using NetworkSkins.Detour;
-using System;
+﻿using System;
 using System.Reflection;
+using ColossalFramework;
+using NetworkSkins.Detour;
 using UnityEngine;
 
 namespace NetworkSkins.Props
@@ -43,8 +42,6 @@ namespace NetworkSkins.Props
 
         public new void UpdateSegmentRenderer(ushort segment, bool updateGroup)
         {
-            ADebugger.instance.a_updateSegmentRenderer++;// mod
-
             if (this.m_segments.m_buffer[(int)segment].m_flags == NetSegment.Flags.None)
             {
                 return;
@@ -52,34 +49,34 @@ namespace NetworkSkins.Props
             Singleton<RenderManager>.instance.UpdateInstance((uint)(49152 + segment));
             if (updateGroup)
             {
-                NetInfo info = this.m_segments.m_buffer[(int)segment].Info;
+                var info = this.m_segments.m_buffer[(int)segment].Info;
                 if (info == null)
                 {
                     return;
                 }
-                ushort startNode = this.m_segments.m_buffer[(int)segment].m_startNode;
-                ushort endNode = this.m_segments.m_buffer[(int)segment].m_endNode;
-                Vector3 position = this.m_nodes.m_buffer[(int)startNode].m_position;
-                Vector3 position2 = this.m_nodes.m_buffer[(int)endNode].m_position;
-                Vector3 vector = (position + position2) * 0.5f;
-                int num = Mathf.Clamp((int)(vector.x / 64f + 135f), 0, 269);
-                int num2 = Mathf.Clamp((int)(vector.z / 64f + 135f), 0, 269);
-                int x = num * 45 / 270;
-                int z = num2 * 45 / 270;
-                int num3 = info.m_netLayers;
+                var startNode = this.m_segments.m_buffer[(int)segment].m_startNode;
+                var endNode = this.m_segments.m_buffer[(int)segment].m_endNode;
+                var position = this.m_nodes.m_buffer[(int)startNode].m_position;
+                var position2 = this.m_nodes.m_buffer[(int)endNode].m_position;
+                var vector = (position + position2) * 0.5f;
+                var num = Mathf.Clamp((int)(vector.x / 64f + 135f), 0, 269);
+                var num2 = Mathf.Clamp((int)(vector.z / 64f + 135f), 0, 269);
+                var x = num * 45 / 270;
+                var z = num2 * 45 / 270;
+                var num3 = info.m_netLayers;
                 if (info.m_lanes != null)
                 {
-                    uint num4 = this.m_segments.m_buffer[(int)segment].m_lanes;
-                    int num5 = 0;
+                    var num4 = this.m_segments.m_buffer[(int)segment].m_lanes;
+                    var num5 = 0;
                     while (num5 < info.m_lanes.Length && num4 != 0u)
                     {
-                        NetLaneProps laneProps = info.m_lanes[num5].m_laneProps;
+                        var laneProps = info.m_lanes[num5].m_laneProps;
                         if (laneProps != null && laneProps.m_props != null)
                         {
-                            int num6 = laneProps.m_props.Length;
-                            for (int i = 0; i < num6; i++)
+                            var num6 = laneProps.m_props.Length;
+                            for (var i = 0; i < num6; i++)
                             {
-                                NetLaneProps.Prop prop = laneProps.m_props[i];
+                                var prop = laneProps.m_props[i];
                                 if (prop.m_finalProp != null)
                                 {
                                     num3 |= 1 << prop.m_finalProp.m_prefabDataLayer;
@@ -98,7 +95,7 @@ namespace NetworkSkins.Props
                         num5++;
                     }
                 }
-                for (int j = 0; j < 32; j++)
+                for (var j = 0; j < 32; j++)
                 {
                     if ((num3 & 1 << j) != 0)
                     {

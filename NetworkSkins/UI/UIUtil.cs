@@ -1,19 +1,21 @@
-﻿using ColossalFramework.UI;
+﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
+using ColossalFramework.UI;
 using UnityEngine;
 
 namespace NetworkSkins.UI
 {
     public class UIUtil
     {
-        private const float LABEL_RELATIVE_WIDTH = .30f;
+        private const float LABEL_RELATIVE_WIDTH = .25f;
         private const float COLUMN_PADDING = 5f;
 
-        public static UIDropDown CreateDropDownWithLabel(out UILabel label, UIComponent parent, string labelText, float width) 
+        public static UIDropDown CreateDropDownWithLabel(out UILabel label, UIComponent parent, string labelText, float width)
         {
             var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
-            
-            UIDropDown dropDown = UIUtil.CreateDropDown(parent);
+
+            var dropDown = UIUtil.CreateDropDown(parent);
             dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
             dropDown.width = width - labelWidth - COLUMN_PADDING;
 
@@ -38,10 +40,10 @@ namespace NetworkSkins.UI
 
         public static UIDropDown CreateDropDown(UIComponent parent)
         {
-            UIDropDown dropDown = parent.AddUIComponent<UIDropDown>();
+            var dropDown = parent.AddUIComponent<UIDropDown>();
             dropDown.size = new Vector2(90f, 30f);
             dropDown.listBackground = "GenericPanelLight";
-            dropDown.itemHeight = 30;
+            dropDown.itemHeight = 25;
             dropDown.itemHover = "ListItemHover";
             dropDown.itemHighlight = "ListItemHighlight";
             dropDown.normalBgSprite = "ButtonMenu";
@@ -49,7 +51,7 @@ namespace NetworkSkins.UI
             dropDown.hoveredBgSprite = "ButtonMenuHovered";
             dropDown.focusedBgSprite = "ButtonMenu";
             dropDown.listWidth = 90;
-            dropDown.listHeight = 500;
+            dropDown.listHeight = 300;
             dropDown.foregroundSpriteMode = UIForegroundSpriteMode.Stretch;
             dropDown.popupColor = new Color32(45, 52, 61, 255);
             dropDown.popupTextColor = new Color32(170, 170, 170, 255);
@@ -60,8 +62,9 @@ namespace NetworkSkins.UI
             dropDown.selectedIndex = 0;
             dropDown.textFieldPadding = new RectOffset(8, 0, 8, 0);
             dropDown.itemPadding = new RectOffset(14, 0, 8, 0);
+            dropDown.listPosition = UIDropDown.PopupListPosition.Above;
 
-            UIButton button = dropDown.AddUIComponent<UIButton>();
+            var button = dropDown.AddUIComponent<UIButton>();
             dropDown.triggerButton = button;
             button.text = "";
             button.size = dropDown.size;
@@ -79,37 +82,49 @@ namespace NetworkSkins.UI
             button.zOrder = 0;
             button.textScale = 0.8f;
 
-            dropDown.eventSizeChanged += new PropertyChangedEventHandler<Vector2>((c, t) =>
+            dropDown.eventSizeChanged += (c, t) =>
             {
                 button.size = t; dropDown.listWidth = (int)t.x;
-            });
+            };
 
             return dropDown;
         }
 
-        // TODO better names from localisation!
-        public static string GenerateBeautifiedPrefabName(PrefabInfo prefab, PrefabInfo defaultPrefab) 
+        public static string GenerateBeautifiedPrefabName(PrefabInfo prefab)
         {
-            string itemName = (prefab == null ? "None" : prefab.name);
+            string itemName;
 
-            var index1 = itemName.IndexOf('.');
-            if (index1 > -1) itemName = itemName.Substring(index1 + 1);
+            if (prefab == null)
+            {
+                itemName = "None";
+            }
+            else
+            {
+                itemName = prefab.GetUncheckedLocalizedTitle();
 
-            var index2 = itemName.IndexOf("_Data");
-            if (index2 > -1) itemName = itemName.Substring(0, index2);
+                var index1 = itemName.IndexOf('.');
+                if (index1 > -1) itemName = itemName.Substring(index1 + 1);
 
-            itemName = AddSpacesToSentence(itemName);
+                var index2 = itemName.IndexOf("_Data", StringComparison.Ordinal);
+                if (index2 > -1) itemName = itemName.Substring(0, index2);
 
-            if (prefab == defaultPrefab) itemName += " (Default)";
+                // replace spaces at start and end
+                itemName = itemName.Trim();
+
+                // replace multiple spaces with one
+                itemName = Regex.Replace(itemName, " {2,}", " ");
+
+                //itemName = AddSpacesToSentence(itemName);
+            }
 
             return itemName;
         }
 
         private static string AddSpacesToSentence(string text)
         {
-            StringBuilder newText = new StringBuilder(text.Length * 2);
+            var newText = new StringBuilder(text.Length * 2);
             newText.Append(text[0]);
-            for (int i = 1; i < text.Length; i++)
+            for (var i = 1; i < text.Length; i++)
             {
                 if (char.IsUpper(text[i]))
                     if (text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) newText.Append(' ');

@@ -1,33 +1,25 @@
 ﻿using ColossalFramework.UI;
-using NetworkSkins.UI;
-using UnityEngine;
 
 namespace NetworkSkins
 {
-    public abstract class UINetworkOption : UIPanel
+    public abstract class UIOption : UIPanel
     {
         protected NetInfo SelectedPrefab { get; private set; }
         protected bool Populating { get; private set; }
-        
-        protected abstract void Initialize();
 
-        public void Populate(NetInfo prefab) 
+
+        protected float ParentWidth => this.transform.parent.gameObject.GetComponent<UIComponent>().width;
+
+       public bool Populate(NetInfo prefab) 
         {
             Populating = true;
             SelectedPrefab = prefab;
-            PopulateImpl();
+            var result = PopulateImpl();
             Populating = false;
+            return result;
         }
         
-        protected abstract void PopulateImpl();
-
-        protected float ParentWidth 
-        {
-            get 
-            {
-                return this.transform.parent.gameObject.GetComponent<UIComponent>().width; 
-            }
-        }
+        protected abstract bool PopulateImpl();
 
         public override void Awake()
         {
@@ -37,5 +29,7 @@ namespace NetworkSkins
             this.width = ParentWidth;
             this.FitChildrenVertically();
         }
+
+        protected abstract void Initialize();
     }
 }

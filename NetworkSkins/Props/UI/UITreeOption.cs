@@ -1,14 +1,12 @@
-﻿using ColossalFramework.UI;
+﻿using System.Collections.Generic;
 using NetworkSkins.Net;
 using NetworkSkins.UI;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace NetworkSkins.Props
 {
     public class UITreeOption : UIDropDownOption
     {
-        private List<TreeInfo> availableTrees;
+        private List<TreeInfo> _availableTrees;
 
         private LanePosition _lanePosition;
         public LanePosition LanePosition { 
@@ -22,25 +20,26 @@ namespace NetworkSkins.Props
 
         protected override bool PopulateDropDown()
         {
-            availableTrees = PropCustomizer.instance.GetAvailableTrees(SelectedPrefab);
+            _availableTrees = PropCustomizer.Instance.GetAvailableTrees(SelectedPrefab);
 
-            if (SelectedPrefab != null && availableTrees != null && PropCustomizer.instance.HasTrees(SelectedPrefab, LanePosition))
+            if (SelectedPrefab != null && _availableTrees != null && PropCustomizer.Instance.HasTrees(SelectedPrefab, LanePosition))
             {
-                var defaultTree = PropCustomizer.instance.GetDefaultTree(SelectedPrefab, LanePosition);
-                var activeTree = PropCustomizer.instance.GetActiveTree(SelectedPrefab, LanePosition);
+                var defaultTree = PropCustomizer.Instance.GetDefaultTree(SelectedPrefab, LanePosition);
+                var activeTree = PropCustomizer.Instance.GetActiveTree(SelectedPrefab, LanePosition);
 
                 DropDown.items = new string[0];
 
-                foreach (var tree in availableTrees)
+                foreach (var tree in _availableTrees)
                 {
-                    string itemName = UIUtil.GenerateBeautifiedPrefabName(tree, defaultTree);
-
+                    var itemName = UIUtil.GenerateBeautifiedPrefabName(tree);
+                    itemName = BeautifyNameEvenMore(itemName);
+                    if (tree == defaultTree) itemName += " (Default)";
                     DropDown.AddItem(itemName);
 
                     if (tree == activeTree) DropDown.selectedIndex = DropDown.items.Length - 1;
                 }
 
-                if (availableTrees.Count >= 2)
+                if (_availableTrees.Count >= 2)
                 {
                     return true;
                 }
@@ -48,9 +47,25 @@ namespace NetworkSkins.Props
             return false;
         }
 
+        private string BeautifyNameEvenMore(string itemName) 
+        {
+            switch(itemName)                   
+            {
+                case "Cherry Tree01": return "Cherry Tree";
+                case "Tree with Leaves": return "Small Oak";
+                case "Tree with Leaves #2": return "Large Oak";
+                case "Oak": return "Random Oak";
+                case "Conifer #2": return "Small Conifer";
+                case "Conife": return "Medium Conifer";
+                case "Wild Conifer": return "Large Conifer";
+                case "Alder #2": return "Alder";
+                default: return itemName;
+            }          
+        }
+
         protected override void OnSelectionChanged(int index)
         {
-            PropCustomizer.instance.SetTree(SelectedPrefab, LanePosition, availableTrees[index]);
+            PropCustomizer.Instance.SetTree(SelectedPrefab, LanePosition, _availableTrees[index]);
         }
     }
 }

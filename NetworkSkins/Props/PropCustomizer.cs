@@ -1,70 +1,61 @@
-﻿using ColossalFramework.Packaging;
-using ColossalFramework.Plugins;
-using ColossalFramework.UI;
-using ICities;
-using NetworkSkins.Net;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using ColossalFramework;
+using ICities;
+using NetworkSkins.Data;
+using NetworkSkins.Detour;
+using NetworkSkins.Net;
 using UnityEngine;
 
 namespace NetworkSkins.Props
 {
-    public class PropCustomizer : ILoadingExtension
+    public class PropCustomizer : LoadingExtensionBase
     {
-        public static PropCustomizer instance;
+        public static PropCustomizer Instance;
 
-        private readonly List<SegmentPropDef> segmentPropDefs = new List<SegmentPropDef>();
-        private readonly Dictionary<NetInfo, SegmentPropDef> activeSegmentDefs = new Dictionary<NetInfo, SegmentPropDef>();
+        private readonly List<TreeInfo> _availableTrees = new List<TreeInfo>();
+        private readonly List<PropInfo> _availableStreetLights = new List<PropInfo>();
+        public int[] StreetLightPrefabDataIndices;
 
-        public SegmentPropDef[] segmentPropMap = null;
-
-        public readonly List<TreeInfo> availableTrees = new List<TreeInfo>();
-        public readonly List<PropInfo> availableStreetLights = new List<PropInfo>();
-
-        public void OnCreated(ILoading loading)
+        public override void OnCreated(ILoading loading)
         {
-            instance = this;
+            base.OnCreated(loading);
+            Instance = this;
+
+            RenderManagerDetour.EventUpdateData += OnUpdateData;
 
             NetInfoDetour.Deploy();
             NetLaneDetour.Deploy();
             NetManagerDetour.Deploy();
         }
 
-        public void OnLevelLoaded(LoadMode mode)
+        /// <summary>
+        /// Like OnLevelLoaded, but executed earlier.
+        /// </summary>
+        /// <param name="mode"></param>
+        public void OnUpdateData(SimulationManager.UpdateMode mode)
         {
-            // Don't load if it's not a game
-            if (!NetworkSkinsMod.CheckLoadMode(mode)) return;
-            
-            NetEventManager.instance.eventSegmentCreate += OnSegmentCreate;
-            NetEventManager.instance.eventSegmentRelease += OnSegmentRelease;
-            NetEventManager.instance.eventSegmentTransferData += OnSegmentTransferData;
-
-            if (segmentPropMap == null)
-            {
-                segmentPropMap = new SegmentPropDef[NetManager.instance.m_segments.m_size];
-            }
+            if (mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.NewGame) return;
 
             // no trees
-            availableTrees.Add(null);
+            _availableTrees.Add(null);
 
             for (uint i = 0; i < PrefabCollection<TreeInfo>.LoadedCount(); i++) 
             {
-                TreeInfo prefab = PrefabCollection<TreeInfo>.GetLoaded(i);
+                var prefab = PrefabCollection<TreeInfo>.GetLoaded(i);
 
                 if (prefab == null) continue;
-                if (prefab.m_variations != null && prefab.m_variations.Length > 0) continue; // TODO remove this line?
 
-                availableTrees.Add(prefab);
+                _availableTrees.Add(prefab);
             }
 
             // no street lights
-            availableStreetLights.Add(null);
+            _availableStreetLights.Add(null);
 
             for (uint i = 0; i < PrefabCollection<PropInfo>.LoadedCount(); i++)
             {
-                PropInfo prefab = PrefabCollection<PropInfo>.GetLoaded(i);
+                var prefab = PrefabCollection<PropInfo>.GetLoaded(i);
 
                 if (prefab == null) continue;
                 if (prefab.m_class.m_service == ItemClass.Service.Road || 
@@ -76,52 +67,30 @@ namespace NetworkSkins.Props
                         if (prefab.name.Contains("Taxiway")) continue;
                         if (prefab.name.Contains("Runway")) continue;
                         
-                        foreach(var effect in prefab.m_effects) 
+                        if (prefab.m_effects.Where(effect => effect.m_effect != null).Any(effect => effect.m_effect is LightEffect))
                         {
-                            if (effect.m_effect == null) continue;
-                            if (effect.m_effect is LightEffect) 
-                            {
-                                availableStreetLights.Add(prefab);
-                                break;
-                            }
+                            _availableStreetLights.Add(prefab);
                         }
                     }
                 }
             }
 
-            // TODO search for prefabs for deserialized SegmentPropDefs
-
-            // DEBUG access - remove later!
-            ADebugger.instance.b_propCustomizer = this;
+            // compile list of data indices for fast check if a prefab is a street light:
+            StreetLightPrefabDataIndices = _availableStreetLights.Where(prop => prop != null).Select(prop => prop.m_prefabDataIndex).ToArray();
         }
 
-        public void OnLevelUnloading()
+        public override void OnLevelUnloading()
         {
-            NetEventManager.instance.eventSegmentCreate -= OnSegmentCreate;
-            NetEventManager.instance.eventSegmentCreate -= OnSegmentRelease;
-            NetEventManager.instance.eventSegmentTransferData -= OnSegmentTransferData;
-
-            segmentPropDefs.Clear();
-
-            if (segmentPropMap != null)
-            {
-                for (int i = 0; i < segmentPropMap.Length; i++) 
-                {
-                    segmentPropMap[i] = null;
-                }
-            }
-
-            availableTrees.Clear();
-            availableStreetLights.Clear();
-            activeSegmentDefs.Clear();
-
-            ADebugger.instance.b_propCustomizer = null;
+            _availableTrees.Clear();
+            _availableStreetLights.Clear();
         }
 
-        public void OnReleased()
+        public override void OnReleased()
         {
-            instance = null;
-            
+            Instance = null;
+
+            RenderManagerDetour.EventUpdateData -= OnUpdateData;
+
             NetInfoDetour.Revert();
             NetLaneDetour.Revert();
             NetManagerDetour.Revert();
@@ -129,42 +98,46 @@ namespace NetworkSkins.Props
 
         public bool HasTrees(NetInfo prefab, LanePosition position) 
         {
-            if(prefab.m_lanes != null)
-                foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
-                        foreach (var laneProp in lane.m_laneProps.m_props)
-                            if (laneProp != null)
-                                if (laneProp.m_finalTree != null) return true;
+            if (prefab.m_lanes == null) return false;
+
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null && position.IsCorrectSide(lane.m_position))
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalTree != null && _availableStreetLights.Contains(laneProp.m_finalProp)) return true;
+                    }
             return false;
         }
 
         public bool HasStreetLights(NetInfo prefab)
         {
-            if (prefab.m_lanes != null)
-                foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null)
-                        foreach (var laneProp in lane.m_laneProps.m_props)
-                            if (laneProp != null)
-                                if (laneProp.m_finalProp != null && availableStreetLights.Contains(laneProp.m_finalProp)) return true;
+            if (prefab.m_lanes == null) return false;
+
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null)
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalProp != null && _availableStreetLights.Contains(laneProp.m_finalProp)) return true;
+                    }
+
             return false;
         }
 
         public List<TreeInfo> GetAvailableTrees(NetInfo prefab)
         {
-            return availableTrees;
+            return _availableTrees;
         }
 
         public List<PropInfo> GetAvailableStreetLights(NetInfo prefab)
         {
-            return availableStreetLights;
+            return _availableStreetLights;
         }
 
         public TreeInfo GetActiveTree(NetInfo prefab, LanePosition position)
         {
-            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
-            var flag = GetTreeFeatureFlag(position);
+            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
 
-            if ((def.features & flag) == 0)
+            if (segmentData == null || !segmentData.Features.IsFlagSet(position.ToTreeFeatureFlag()))
             {
                 return GetDefaultTree(prefab, position);
             }
@@ -172,190 +145,86 @@ namespace NetworkSkins.Props
             {
                 switch (position)
                 {
-                    case LanePosition.LEFT: return def.treeLeftPrefab;
-                    case LanePosition.MIDDLE: return def.treeMiddlePrefab;
-                    case LanePosition.RIGHT: return def.treeRightPrefab;
-                    default: throw new ArgumentOutOfRangeException("position");
+                    case LanePosition.Left: return segmentData.TreeLeftPrefab;
+                    case LanePosition.Middle: return segmentData.TreeMiddlePrefab;
+                    case LanePosition.Right: return segmentData.TreeRightPrefab;
+                    default: throw new ArgumentOutOfRangeException(nameof(position));
                 }
             }
         }
 
         public PropInfo GetActiveStreetLight(NetInfo prefab)
         {
-            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
-            var flag = SegmentPropDef.Features.STREET_LIGHT;
+            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
 
-            if ((def.features & flag) == 0)
+            if (segmentData == null || !segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.StreetLight))
             {
                 return GetDefaultStreetLight(prefab);
             }
             else
             {
-                return def.streetLightPrefab;
+                return segmentData.StreetLightPrefab;
             }
         }
 
         public TreeInfo GetDefaultTree(NetInfo prefab, LanePosition position)
         {
+            if (prefab.m_lanes == null) return null;
 
-            if (prefab.m_lanes != null)
-                foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null && position.IsCorrectSide(lane.m_position))
-                        foreach (var laneProp in lane.m_laneProps.m_props)
-                            if (laneProp != null)
-                                if (laneProp.m_finalTree != null) return laneProp.m_finalTree;
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null && position.IsCorrectSide(lane.m_position))
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalTree != null) return laneProp.m_finalTree;
+                    }
+
             return null;
         }
 
         public PropInfo GetDefaultStreetLight(NetInfo prefab)
         {
+            if (prefab.m_lanes == null) return null;
 
-            if (prefab.m_lanes != null)
-                foreach (var lane in prefab.m_lanes)
-                    if (lane != null && lane.m_laneProps != null && lane.m_laneProps.m_props != null)
-                        foreach (var laneProp in lane.m_laneProps.m_props)
-                            if (laneProp != null)
-                                if (laneProp.m_finalProp != null && availableStreetLights.Contains(laneProp.m_finalProp)) return laneProp.m_finalProp;
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null)
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalProp != null && _availableStreetLights.Contains(laneProp.m_finalProp)) return laneProp.m_finalProp;
+                    }
+
             return null;
         }
 
         public void SetTree(NetInfo prefab, LanePosition position, TreeInfo tree)
         {
-            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
-            var flag = GetTreeFeatureFlag(position);
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
 
-            string treeName;
-
-            if (tree == GetDefaultTree(prefab, position))
+            if (tree != GetDefaultTree(prefab, position))
             {
-                def.features = (def.features & ~flag);
-
-                tree = null;
-                treeName = null;
+                newSegmentData.SetFeature(position.ToTreeFeatureFlag(), tree);
             }
             else
             {
-                def.features = (def.features | flag);
-
-                treeName = tree == null ? null : tree.name;
+                newSegmentData.UnsetFeature(position.ToTreeFeatureFlag());
             }
 
-            switch (position)
-            {
-                case LanePosition.LEFT: def.treeLeftPrefab = tree; def.treeLeft = treeName; break;
-                case LanePosition.MIDDLE: def.treeMiddlePrefab = tree; def.treeMiddle = treeName; break;
-                case LanePosition.RIGHT: def.treeRightPrefab = tree; def.treeRight = treeName; break;
-                default: throw new ArgumentOutOfRangeException("position");
-            }
-
-            if (def.features == 0)
-            {
-                activeSegmentDefs.Remove(prefab);
-                return;
-            }
-            else
-            {
-                var index = segmentPropDefs.IndexOf(def);
-                if (index < 0)
-                {
-                    segmentPropDefs.Add(def);
-                    activeSegmentDefs[prefab] = def;
-                }
-                else
-                {
-                    def = segmentPropDefs[index];
-                    activeSegmentDefs[prefab] = def;
-                }
-            }
+            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
         }
 
         public void SetStreetLight(NetInfo prefab, PropInfo prop)
         {
-            var def = new SegmentPropDef(GetSegmentPropDef(prefab));
-            var flag = SegmentPropDef.Features.STREET_LIGHT;
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
 
-            string propName;
-
-            if (prop == GetDefaultStreetLight(prefab))
+            if (prop != GetDefaultStreetLight(prefab))
             {
-                def.features = (def.features & ~flag);
-
-                prop = null;
-                propName = null;
+                newSegmentData.SetFeature(SegmentData.FeatureFlags.StreetLight, prop);
             }
             else
             {
-                def.features = (def.features | flag);
-
-                propName = prop == null ? null : prop.name;
+                newSegmentData.UnsetFeature(SegmentData.FeatureFlags.StreetLight);
             }
 
-            def.streetLightPrefab = prop;
-            def.streetLight = propName;
-
-            if (def.features == 0)
-            {
-                activeSegmentDefs.Remove(prefab);
-                return;
-            }
-            else
-            {
-                var index = segmentPropDefs.IndexOf(def);
-                if (index < 0)
-                {
-                    segmentPropDefs.Add(def);
-                    activeSegmentDefs[prefab] = def;
-                }
-                else
-                {
-                    def = segmentPropDefs[index];
-                    activeSegmentDefs[prefab] = def;
-                }
-            }
-        }
-
-        private SegmentPropDef GetSegmentPropDef(NetInfo prefab) 
-        {
-            SegmentPropDef def;
-            activeSegmentDefs.TryGetValue(prefab, out def);
-            return def;
-        }
-
-        private SegmentPropDef.Features GetTreeFeatureFlag(LanePosition position) 
-        {
-            switch (position)
-            {
-                case LanePosition.LEFT:   return SegmentPropDef.Features.TREE_LEFT;
-                case LanePosition.MIDDLE: return SegmentPropDef.Features.TREE_MIDDLE;
-                case LanePosition.RIGHT:  return SegmentPropDef.Features.TREE_RIGHT;
-                default: throw new ArgumentOutOfRangeException("position");
-            }
-        }
-
-        public void OnSegmentCreate(ushort segment)
-        {
-            var prefab = NetManager.instance.m_segments.m_buffer[segment].Info;
-            var def = GetSegmentPropDef(prefab);
-            segmentPropMap[segment] = def;
-            
-            Debug.LogFormat("Segment {0} created!", segment);
-
-            if (def == null) Debug.Log("Def is null!");
-            else Debug.Log(prefab.name + ": " + def);
-        }
-
-        public void OnSegmentRelease(ushort segment)
-        {
-            segmentPropMap[segment] = null;
-            
-            Debug.LogFormat("Segment {0} released!", segment);
-        }
-
-        public void OnSegmentTransferData(ushort oldSegment, ushort newSegment)
-        {
-            segmentPropMap[newSegment] = segmentPropMap[oldSegment];
-
-            Debug.LogFormat("Transfer data from {0} to {1}!", oldSegment, newSegment);
+            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
         }
     }
 }
