@@ -63,7 +63,7 @@ namespace NetworkSkins
             NetManagerDetour.Revert();
         }
 
-        public static string GetModPath()
+        public static string GetModPath() // TODO works on mac???
         {
             foreach (var current in PluginManager.instance.GetPluginsInfo())
             {
@@ -74,7 +74,7 @@ namespace NetworkSkins
 
         public static bool CheckLoadMode(LoadMode mode) 
         {
-            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame;
+            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.LoadMap || mode == LoadMode.NewMap;
         }
     }
 }

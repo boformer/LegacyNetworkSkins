@@ -36,7 +36,8 @@ namespace NetworkSkins.Props
         /// <param name="mode"></param>
         public void OnUpdateData(SimulationManager.UpdateMode mode)
         {
-            if (mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.NewGame) return;
+            if (mode != SimulationManager.UpdateMode.LoadMap && mode != SimulationManager.UpdateMode.NewMap 
+                && mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.NewGame) return;
 
             // no trees
             _availableTrees.Add(null);

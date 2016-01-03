@@ -41,7 +41,7 @@ namespace NetworkSkins.Data
         /// <param name="mode"></param>
         public void OnUpdateData(SimulationManager.UpdateMode mode)
         {
-            if (mode != SimulationManager.UpdateMode.LoadGame) return;
+            if (mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.LoadMap) return;
 
             var data = serializableDataManager.LoadData(DataId);
 
@@ -98,6 +98,8 @@ namespace NetworkSkins.Data
         public override void OnReleased()
         {
             base.OnReleased();
+
+            RenderManagerDetour.EventUpdateData -= OnUpdateData;
 
             Instance = null;
         }
