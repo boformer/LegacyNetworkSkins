@@ -32,7 +32,7 @@ namespace NetworkSkins.Data
             base.OnCreated(serializableData);
             Instance = this;
 
-            RenderManagerDetour.EventUpdateData += OnUpdateData;
+            RenderManagerDetour.EventUpdateDataPost += OnUpdateData;
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace NetworkSkins.Data
         {
             base.OnReleased();
 
-            RenderManagerDetour.EventUpdateData -= OnUpdateData;
+            RenderManagerDetour.EventUpdateDataPost -= OnUpdateData;
 
             Instance = null;
         }

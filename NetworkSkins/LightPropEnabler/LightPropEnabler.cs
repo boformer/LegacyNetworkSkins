@@ -22,14 +22,14 @@ namespace NetworkSkins.LightPropEnabler
         {
             base.OnCreated(loading);
 
-            RenderManagerDetour.EventUpdateData += UpdateData;
+            RenderManagerDetour.EventUpdateDataPre += UpdateData;
         }
 
         public override void OnReleased()
         {
             base.OnReleased();
 
-            RenderManagerDetour.EventUpdateData -= UpdateData;
+            RenderManagerDetour.EventUpdateDataPre -= UpdateData;
         }
 
         public override void OnLevelLoaded(LoadMode mode)

@@ -19,7 +19,9 @@ namespace NetworkSkins.Detour
         private static MethodInfo _RenderManager_UpdateData_original;
         private static MethodInfo _RenderManager_UpdateData_detour;
 
+        public static event UpdateDataEventListener EventUpdateDataPre;
         public static event UpdateDataEventListener EventUpdateData;
+        public static event UpdateDataEventListener EventUpdateDataPost;
         public delegate void UpdateDataEventListener(SimulationManager.UpdateMode mode);
 
         public static void Deploy()
@@ -47,8 +49,10 @@ namespace NetworkSkins.Detour
 
         public override void UpdateData(SimulationManager.UpdateMode mode)
         {
-            // Call event
+            // Call 
+            EventUpdateDataPre?.Invoke(mode);
             EventUpdateData?.Invoke(mode);
+            EventUpdateDataPost?.Invoke(mode);
 
             // Execute original method
             RedirectionHelper.RevertRedirect(_RenderManager_UpdateData_original, _RenderManager_UpdateData_state);
