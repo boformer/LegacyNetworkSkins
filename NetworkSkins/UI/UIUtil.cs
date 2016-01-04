@@ -102,11 +102,13 @@ namespace NetworkSkins.UI
             {
                 itemName = prefab.GetUncheckedLocalizedTitle();
 
+                /*
                 var index1 = itemName.IndexOf('.');
                 if (index1 > -1) itemName = itemName.Substring(index1 + 1);
 
                 var index2 = itemName.IndexOf("_Data", StringComparison.Ordinal);
                 if (index2 > -1) itemName = itemName.Substring(0, index2);
+                */
 
                 // replace spaces at start and end
                 itemName = itemName.Trim();
