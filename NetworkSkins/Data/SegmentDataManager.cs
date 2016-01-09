@@ -33,6 +33,10 @@ namespace NetworkSkins.Data
             Instance = this;
 
             RenderManagerDetour.EventUpdateDataPost += OnUpdateData;
+
+            NetManagerDetour.EventSegmentCreate += OnSegmentCreate;
+            NetManagerDetour.EventSegmentRelease += OnSegmentRelease;
+            NetManagerDetour.EventSegmentTransferData += OnSegmentTransferData;
         }
 
         /// <summary>
@@ -47,12 +51,20 @@ namespace NetworkSkins.Data
 
             if (data != null)
             {
-                using (var stream = new MemoryStream(data))
+                try
                 {
-                    SegmentToSegmentDataMap = DataSerializer.DeserializeArray<SegmentData>(stream, DataSerializer.Mode.Memory);
-                }
+                    using (var stream = new MemoryStream(data))
+                    {
+                        SegmentToSegmentDataMap = DataSerializer.DeserializeArray<SegmentData>(stream,
+                            DataSerializer.Mode.Memory);
+                    }
 
-                Debug.LogFormat("Network Skins: Data loaded (Data length: {0})", data.Length);
+                    Debug.LogFormat("Network Skins: Data loaded (Data length: {0})", data.Length);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
 
             if (SegmentToSegmentDataMap == null)
@@ -74,9 +86,7 @@ namespace NetworkSkins.Data
 
         public void OnLevelLoaded()
         {
-            NetManagerDetour.EventSegmentCreate += OnSegmentCreate;
-            NetManagerDetour.EventSegmentRelease += OnSegmentRelease;
-            NetManagerDetour.EventSegmentTransferData += OnSegmentTransferData;
+
 
             if (SegmentToSegmentDataMap == null)
             {
@@ -86,10 +96,6 @@ namespace NetworkSkins.Data
 
         public void OnLevelUnloaded()
         {
-            NetManagerDetour.EventSegmentCreate -= OnSegmentCreate;
-            NetManagerDetour.EventSegmentCreate -= OnSegmentRelease;
-            NetManagerDetour.EventSegmentTransferData -= OnSegmentTransferData;
-
             _usedSegmentData.Clear();
             _selectedSegmentOptions.Clear();
             SegmentToSegmentDataMap = null;
@@ -101,6 +107,10 @@ namespace NetworkSkins.Data
 
             RenderManagerDetour.EventUpdateDataPost -= OnUpdateData;
 
+            NetManagerDetour.EventSegmentCreate -= OnSegmentCreate;
+            NetManagerDetour.EventSegmentCreate -= OnSegmentRelease;
+            NetManagerDetour.EventSegmentTransferData -= OnSegmentTransferData;
+
             Instance = null;
         }
 
@@ -110,7 +120,7 @@ namespace NetworkSkins.Data
 
             var saveRequired = CleanupData();
 
-            // check if data must be 
+            // check if data must be saved
             if (saveRequired)
             {
                 byte[] data;
@@ -174,6 +184,8 @@ namespace NetworkSkins.Data
 
         public void OnSegmentCreate(ushort segment)
         {
+            if (SegmentToSegmentDataMap == null) return;
+
             var prefab = NetManager.instance.m_segments.m_buffer[segment].Info;
             var segmentData = GetActiveSegmentData(prefab);
             SegmentToSegmentDataMap[segment] = segmentData;
@@ -185,6 +197,8 @@ namespace NetworkSkins.Data
 
         public void OnSegmentRelease(ushort segment)
         {
+            if (SegmentToSegmentDataMap == null) return;
+
             var segmentData = SegmentToSegmentDataMap[segment];
             if (segmentData != null)
             {
@@ -199,6 +213,8 @@ namespace NetworkSkins.Data
 
         public void OnSegmentTransferData(ushort oldSegment, ushort newSegment)
         {
+            if (SegmentToSegmentDataMap == null) return;
+
             var segmentData = SegmentToSegmentDataMap[oldSegment];
             if (segmentData != null) segmentData.UsedCount++;
 
