@@ -6,6 +6,7 @@ using NetworkSkins.Data;
 using NetworkSkins.Detour;
 using NetworkSkins.Net;
 using NetworkSkins.UI;
+using UnityEngine;
 
 namespace NetworkSkins
 {
@@ -30,6 +31,8 @@ namespace NetworkSkins
         {
             base.OnLevelLoaded(mode);
 
+            Debug.Log("Begin NetworkSkinsMod.OnLevelLoaded");
+
             SegmentDataManager.Instance.OnLevelLoaded();
 
             // Don't load if it's not a game
@@ -41,6 +44,8 @@ namespace NetworkSkins
                 panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
             }
             panel.isVisible = true;
+
+            Debug.Log("End NetworkSkinsMod.OnLevelLoaded");
         }
 
         public override void OnLevelUnloading()

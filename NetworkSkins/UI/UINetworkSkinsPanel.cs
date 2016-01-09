@@ -35,6 +35,8 @@ namespace NetworkSkins.UI
         {
             base.Awake();
 
+            Debug.Log("Begin UINetworkSkinsPanel.Awake");
+
             LoadSprites();
 
             this.backgroundSprite = "MenuPanel2";
@@ -121,6 +123,8 @@ namespace NetworkSkins.UI
             //GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();
 
             _tabstrip.startSelectedIndex = (int)NetType.Ground;
+
+            Debug.Log("End UINetworkSkinsPanel.Awake");
         }
 
         public override void Start()
