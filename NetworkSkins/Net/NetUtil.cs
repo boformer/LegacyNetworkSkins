@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using ColossalFramework.Plugins;
+using UnityEngine;
 
 namespace NetworkSkins.Net
 {
@@ -44,10 +45,12 @@ namespace NetworkSkins.Net
         {
             if (!FineRoadHeightsEnabled)
             {
+                Debug.Log("Network Skins: FineRoadHeights not detected!");
                 return new NetToolWrapperVanilla();
             }
             else
             {
+                Debug.Log("Network Skins: FineRoadHeights detected!");
                 return new NetToolWrapperFineRoadHeights();
             }
         }
