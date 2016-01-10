@@ -129,8 +129,7 @@ namespace NetworkSkins.UI
 
         public override void Start()
         {
-            anchor = UIAnchorStyle.Right;
-            absolutePosition = new Vector3(Mathf.Floor((GetUIView().fixedWidth - width - 50)), Mathf.Floor((GetUIView().fixedHeight - height - 50)));
+            absolutePosition = new Vector3(Mathf.Floor((GetUIView().GetScreenResolution().x - width - 50)), Mathf.Floor((GetUIView().GetScreenResolution().y - height - 50)));
         }
 
         private UIPanel GetPage(NetType netType) 
