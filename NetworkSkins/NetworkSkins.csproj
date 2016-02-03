@@ -73,9 +73,7 @@
     <Compile Include="Net\NetUtil.cs" />
     <Compile Include="Pillars\PillarCustomizer.cs" />
     <Compile Include="Pillars\UIPillarOption.cs" />
-    <Compile Include="Props\Detour\NetInfoDetour.cs" />
     <Compile Include="Props\Detour\NetLaneDetour.cs" />
-    <Compile Include="Props\Detour\NetManagerDetour.cs" />
     <Compile Include="Props\PropCustomizer.cs" />
     <Compile Include="Data\SegmentData.cs" />
     <Compile Include="Net\LanePosition.cs" />

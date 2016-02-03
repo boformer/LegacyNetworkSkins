@@ -18,7 +18,8 @@ namespace NetworkSkins.Data
             TreeMiddle = 2,
             TreeRight = 4,
             StreetLight = 8,
-            NoDecals = 16
+            NoDecals = 16,
+            RepeatDistances = 32,
         }
 
         // After setting these fields once, they should only be read!
@@ -27,6 +28,7 @@ namespace NetworkSkins.Data
         public string TreeMiddle;
         public string TreeRight;
         public string StreetLight;
+        public Vector4 RepeatDistances; // x -> left tree, y -> middle tree, z -> right tree, w -> street light
 
         [NonSerialized]
         public TreeInfo TreeLeftPrefab;
@@ -50,6 +52,7 @@ namespace NetworkSkins.Data
             TreeMiddle = segmentData.TreeMiddle;
             TreeRight = segmentData.TreeRight;
             StreetLight = segmentData.StreetLight;
+            RepeatDistances = segmentData.RepeatDistances;
 
             TreeLeftPrefab = segmentData.TreeLeftPrefab;
             TreeMiddlePrefab = segmentData.TreeMiddlePrefab;
@@ -57,7 +60,7 @@ namespace NetworkSkins.Data
             StreetLightPrefab = segmentData.StreetLightPrefab;
         }
 
-        public void SetFeature<P>(FeatureFlags feature, P prefab = null) where P : PrefabInfo
+        public void SetPrefabFeature<P>(FeatureFlags feature, P prefab = null) where P : PrefabInfo
         {
             Features = Features.SetFlags(feature);
 
@@ -68,6 +71,17 @@ namespace NetworkSkins.Data
 
             nameField?.SetValue(this, prefab?.name);
             prefabField?.SetValue(this, prefab);
+        }
+
+        public void SetStructFeature<V>(FeatureFlags feature, V value) where V : struct
+        {
+            Features = Features.SetFlags(feature);
+
+            var flagName = feature.ToString();
+
+            var nameField = GetType().GetField(flagName);
+
+            nameField?.SetValue(this, value); //TODO
         }
 
         public void UnsetFeature(FeatureFlags feature)
@@ -95,6 +109,8 @@ namespace NetworkSkins.Data
                 s.WriteSharedString(TreeRight);
             if (Features.IsFlagSet(FeatureFlags.StreetLight))
                 s.WriteSharedString(StreetLight);
+            if (Features.IsFlagSet(FeatureFlags.RepeatDistances))
+                s.WriteVector4(RepeatDistances);
         }
 
         public void Deserialize(DataSerializer s)
@@ -109,6 +125,8 @@ namespace NetworkSkins.Data
                 TreeRight = s.ReadSharedString();
             if (Features.IsFlagSet(FeatureFlags.StreetLight))
                 StreetLight = s.ReadSharedString();
+            if (Features.IsFlagSet(FeatureFlags.RepeatDistances))
+                RepeatDistances = s.ReadVector4();
         }
 
         public void AfterDeserialize(DataSerializer s) {}
@@ -122,11 +140,12 @@ namespace NetworkSkins.Data
 
         protected bool Equals(SegmentData other)
         {
-            return Features == other.Features 
-                && string.Equals(TreeLeft, other.TreeLeft) 
-                && string.Equals(TreeMiddle, other.TreeMiddle) 
-                && string.Equals(TreeRight, other.TreeRight) 
-                && string.Equals(StreetLight, other.StreetLight);
+            return Features == other.Features
+                && string.Equals(TreeLeft, other.TreeLeft)
+                && string.Equals(TreeMiddle, other.TreeMiddle)
+                && string.Equals(TreeRight, other.TreeRight)
+                && string.Equals(StreetLight, other.StreetLight)
+                && (Features.IsFlagSet(FeatureFlags.RepeatDistances) == Vector4.Equals(RepeatDistances, other.RepeatDistances));
         }
 
         public override int GetHashCode()
@@ -138,6 +157,7 @@ namespace NetworkSkins.Data
                 hashCode = (hashCode*397) ^ (TreeMiddle?.GetHashCode() ?? 0);
                 hashCode = (hashCode*397) ^ (TreeRight?.GetHashCode() ?? 0);
                 hashCode = (hashCode*397) ^ (StreetLight?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Features.IsFlagSet(FeatureFlags.RepeatDistances) ? RepeatDistances.GetHashCode() : 0);
                 return hashCode;
             }
         }

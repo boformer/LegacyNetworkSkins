@@ -25,9 +25,7 @@ namespace NetworkSkins.Props
 
             RenderManagerDetour.EventUpdateData += OnUpdateData;
 
-            NetInfoDetour.Deploy();
             NetLaneDetour.Deploy();
-            NetManagerDetour.Deploy();
         }
 
         /// <summary>
@@ -92,9 +90,7 @@ namespace NetworkSkins.Props
 
             RenderManagerDetour.EventUpdateData -= OnUpdateData;
 
-            NetInfoDetour.Revert();
             NetLaneDetour.Revert();
-            NetManagerDetour.Revert();
         }
 
         public bool HasTrees(NetInfo prefab, LanePosition position) 
@@ -202,7 +198,7 @@ namespace NetworkSkins.Props
 
             if (tree != GetDefaultTree(prefab, position))
             {
-                newSegmentData.SetFeature(position.ToTreeFeatureFlag(), tree);
+                newSegmentData.SetPrefabFeature(position.ToTreeFeatureFlag(), tree);
             }
             else
             {
@@ -218,7 +214,7 @@ namespace NetworkSkins.Props
 
             if (prop != GetDefaultStreetLight(prefab))
             {
-                newSegmentData.SetFeature(SegmentData.FeatureFlags.StreetLight, prop);
+                newSegmentData.SetPrefabFeature(SegmentData.FeatureFlags.StreetLight, prop);
             }
             else
             {

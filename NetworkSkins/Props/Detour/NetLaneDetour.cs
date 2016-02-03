@@ -115,10 +115,75 @@ namespace NetworkSkins.Props
                     var prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
-                        var num2 = 2;
-                        if (prop.m_repeatDistance > 1f)
+                        // mod begin
+                        var finalProp = prop.m_finalProp;
+                        var finalTree = prop.m_finalTree;
+                        var repeatDistance = prop.m_repeatDistance;
+                        if (segmentData != null)
                         {
-                            num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
+                            // custom street lights
+                            if (finalProp != null)
+                            {
+                                var customLight = (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0;
+
+                                // Contains seems to be faster than array lookup
+                                if ((customLight || segmentData.RepeatDistances.magnitude > 0f) && streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
+                                {
+                                    if (customLight)
+                                    {
+                                        finalProp = segmentData.StreetLightPrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.w > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.w;
+                                    }
+                                }
+                            }
+
+                            // custom road trees
+                            else if (finalTree != null)
+                            {
+                                if (laneInfo.m_position < 0) // Left Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
+                                    {
+                                        finalTree = segmentData.TreeLeftPrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.x > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.x;
+                                    }
+                                }
+                                else if (laneInfo.m_position == 0) // Middle Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                    {
+                                        finalTree = segmentData.TreeMiddlePrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.y > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.y;
+                                    }
+                                }
+                                else // Right Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                    {
+                                        finalTree = segmentData.TreeRightPrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.z > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.z;
+                                    }
+                                }
+                            }
+                        }
+                        // mod end
+
+                        var num2 = 2;
+                        if (repeatDistance > 1f)
+                        {
+                            num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / repeatDistance));
                         }
                         var num3 = propIndex;
                         propIndex = num3 + (num2 + 1 >> 1);
@@ -131,19 +196,6 @@ namespace NetworkSkins.Props
                         {
                             num4 = -num4;
                         }
-                        var finalProp = prop.m_finalProp;
-
-                        // mod begin
-                        // custom street lights
-                        if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
-                        {
-                            // Contains seems to be faster than array lookup
-                            if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
-                            {
-                                finalProp = segmentData.StreetLightPrefab;
-                            }
-                        }
-                        // mod end
 
                         if (finalProp != null)
                         {
@@ -210,35 +262,6 @@ namespace NetworkSkins.Props
                                 }
                             }
                         }
-                        var finalTree = prop.m_finalTree;
-
-                        // mod begin
-                        // custom road trees
-                        if (finalTree != null && segmentData != null)
-                        {
-                            if (laneInfo.m_position < 0) // Left Trees
-                            {
-                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
-                                {
-                                    finalTree = segmentData.TreeLeftPrefab;
-                                }
-                            }
-                            else if (laneInfo.m_position == 0) // Middle Trees
-                            {
-                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
-                                {
-                                    finalTree = segmentData.TreeMiddlePrefab;
-                                }
-                            }
-                            else // Right Trees
-                            {
-                                if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
-                                {
-                                    finalTree = segmentData.TreeRightPrefab;
-                                }
-                            }
-                        }
-                        // mod end
 
                         if (finalTree != null)
                         {
@@ -320,10 +343,77 @@ namespace NetworkSkins.Props
                     var prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
-                        var num2 = 2;
-                        if (prop.m_repeatDistance > 1f)
+                        // mod begin
+                        var prop_m_angle = prop.m_angle;
+                        var finalProp = prop.m_finalProp;
+                        var finalTree = prop.m_finalTree;
+                        var repeatDistance = prop.m_repeatDistance;
+                        if (segmentData != null)
                         {
-                            num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
+                            // custom street lights
+                            if (finalProp != null)
+                            {
+                                var customLight = (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0;
+
+                                // Contains seems to be faster than array lookup
+                                if ((customLight || segmentData.RepeatDistances.magnitude > 0f) && streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
+                                {
+                                    if (customLight)
+                                    {
+                                        finalProp = segmentData.StreetLightPrefab;
+                                        if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
+                                    }
+                                    if (segmentData.RepeatDistances.w > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.w;
+                                    }
+                                }
+                            }
+
+                            // custom road trees
+                            else if (finalTree != null)
+                            {
+                                if (laneInfo.m_position < 0) // Left Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
+                                    {
+                                        finalTree = segmentData.TreeLeftPrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.x > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.x;
+                                    }
+                                }
+                                else if (laneInfo.m_position == 0) // Middle Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                    {
+                                        finalTree = segmentData.TreeMiddlePrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.y > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.y;
+                                    }
+                                }
+                                else // Right Trees
+                                {
+                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                    {
+                                        finalTree = segmentData.TreeRightPrefab;
+                                    }
+                                    if (segmentData.RepeatDistances.z > 0f)
+                                    {
+                                        repeatDistance = segmentData.RepeatDistances.z;
+                                    }
+                                }
+                            }
+                        }
+                        // mod end
+
+                        var num2 = 2;
+                        if (repeatDistance > 1f)
+                        {
+                            num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / repeatDistance));
                         }
                         var num3 = propIndex;
                         if (propIndex != -1)
@@ -341,22 +431,6 @@ namespace NetworkSkins.Props
                             {
                                 num4 = -num4;
                             }
-                            var finalProp = prop.m_finalProp;
-
-                            // mod begin
-                            // custom street lights
-                            var prop_m_angle = prop.m_angle;
-                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
-                            {
-                                // Contains seems to be faster than array lookup
-                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
-                                {
-                                    finalProp = segmentData.StreetLightPrefab;
-
-                                    if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
-                                }
-                            }
-                            // mod end
 
                             if (finalProp != null && (layerMask & 1 << finalProp.m_prefabDataLayer) != 0)
                             {
@@ -435,35 +509,6 @@ namespace NetworkSkins.Props
                                     }
                                 }
                             }
-                            var finalTree = prop.m_finalTree;
-
-                            // mod begin
-                            // custom road trees
-                            if (finalTree != null && segmentData != null)
-                            {
-                                if (laneInfo.m_position < 0) // Left Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
-                                    {
-                                        finalTree = segmentData.TreeLeftPrefab;
-                                    }
-                                }
-                                else if (laneInfo.m_position == 0) // Middle Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
-                                    {
-                                        finalTree = segmentData.TreeMiddlePrefab;
-                                    }
-                                }
-                                else // Right Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
-                                    {
-                                        finalTree = segmentData.TreeRightPrefab;
-                                    }
-                                }
-                            }
-                            // mod end
 
                             if (finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0)
                             {
@@ -548,24 +593,76 @@ namespace NetworkSkins.Props
                     {
                         if (_this.m_length >= prop.m_minLength)
                         {
-                            var num2 = 2;
-                            if (prop.m_repeatDistance > 1f)
-                            {
-                                num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
-                            }
-                            var finalProp = prop.m_finalProp;
-
                             // mod begin
-                            // custom street lights
-                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
+                            var finalProp = prop.m_finalProp;
+                            var finalTree = prop.m_finalTree;
+                            var repeatDistance = prop.m_repeatDistance;
+                            if (segmentData != null)
                             {
-                                // Contains seems to be faster than array lookup
-                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
+                                // custom street lights
+                                if (finalProp != null)
                                 {
-                                    finalProp = segmentData.StreetLightPrefab;
+                                    var customLight = (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0;
+
+                                    // Contains seems to be faster than array lookup
+                                    if ((customLight || segmentData.RepeatDistances.magnitude > 0f) && streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
+                                    {
+                                        if (customLight)
+                                        {
+                                            finalProp = segmentData.StreetLightPrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.w > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.w;
+                                        }
+                                    }
+                                }
+
+                                // custom road trees
+                                else if (finalTree != null)
+                                {
+                                    if (laneInfo.m_position < 0) // Left Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
+                                        {
+                                            finalTree = segmentData.TreeLeftPrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.x > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.x;
+                                        }
+                                    }
+                                    else if (laneInfo.m_position == 0) // Middle Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                        {
+                                            finalTree = segmentData.TreeMiddlePrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.y > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.y;
+                                        }
+                                    }
+                                    else // Right Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                        {
+                                            finalTree = segmentData.TreeRightPrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.z > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.z;
+                                        }
+                                    }
                                 }
                             }
                             // mod end
+
+                            var num2 = 2;
+                            if (repeatDistance > 1f)
+                            {
+                                num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / repeatDistance));
+                            }
 
                             if (finalProp != null)
                             {
@@ -588,35 +685,6 @@ namespace NetworkSkins.Props
                                     }
                                 }
                             }
-                            var finalTree = prop.m_finalTree;
-
-                            // mod begin
-                            // custom road trees
-                            if (finalTree != null && segmentData != null)
-                            {
-                                if (laneInfo.m_position < 0) // Left Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
-                                    {
-                                        finalTree = segmentData.TreeLeftPrefab;
-                                    }
-                                }
-                                else if (laneInfo.m_position == 0) // Middle Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
-                                    {
-                                        finalTree = segmentData.TreeMiddlePrefab;
-                                    }
-                                }
-                                else // Right Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
-                                    {
-                                        finalTree = segmentData.TreeRightPrefab;
-                                    }
-                                }
-                            }
-                            // mod end
 
                             if (finalTree != null)
                             {
@@ -696,6 +764,73 @@ namespace NetworkSkins.Props
                     {
                         if (_this.m_length >= prop.m_minLength)
                         {
+                            // mod begin
+                            var prop_m_angle = prop.m_angle;
+                            var finalProp = prop.m_finalProp;
+                            var finalTree = prop.m_finalTree;
+                            var repeatDistance = prop.m_repeatDistance;
+                            if (segmentData != null)
+                            {
+                                // custom street lights
+                                if (finalProp != null)
+                                {
+                                    var customLight = (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0;
+
+                                    // Contains seems to be faster than array lookup
+                                    if ((customLight || segmentData.RepeatDistances.magnitude > 0f) && streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
+                                    {
+                                        if (customLight)
+                                        {
+                                            finalProp = segmentData.StreetLightPrefab;
+                                            if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
+                                        }
+                                        if (segmentData.RepeatDistances.w > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.w;
+                                        }
+                                    }
+                                }
+
+                                // custom road trees
+                                else if (finalTree != null)
+                                {
+                                    if (laneInfo.m_position < 0) // Left Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
+                                        {
+                                            finalTree = segmentData.TreeLeftPrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.x > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.x;
+                                        }
+                                    }
+                                    else if (laneInfo.m_position == 0) // Middle Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
+                                        {
+                                            finalTree = segmentData.TreeMiddlePrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.y > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.y;
+                                        }
+                                    }
+                                    else // Right Trees
+                                    {
+                                        if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
+                                        {
+                                            finalTree = segmentData.TreeRightPrefab;
+                                        }
+                                        if (segmentData.RepeatDistances.z > 0f)
+                                        {
+                                            repeatDistance = segmentData.RepeatDistances.z;
+                                        }
+                                    }
+                                }
+                            }
+                            // mod end
+
                             var num2 = 2;
                             if (prop.m_repeatDistance > 1f)
                             {
@@ -710,22 +845,6 @@ namespace NetworkSkins.Props
                             {
                                 num3 = -num3;
                             }
-                            var finalProp = prop.m_finalProp;
-
-                            // mod begin
-                            // custom street lights
-                            var prop_m_angle = prop.m_angle;
-                            if (finalProp != null && segmentData != null && (segmentData.Features & SegmentData.FeatureFlags.StreetLight) != 0)
-                            {
-                                // Contains seems to be faster than array lookup
-                                if (streetLightPrefabDataIndices.Contains(finalProp.m_prefabDataIndex))
-                                {
-                                    finalProp = segmentData.StreetLightPrefab;
-
-                                    if (laneInfo.m_position + prop.m_position.x < 0f) prop_m_angle = 180; //rotate street lights on pedestrian paths correctly
-                                }
-                            }
-                            // mod end
 
                             if (finalProp != null)
                             {
@@ -804,35 +923,6 @@ namespace NetworkSkins.Props
                                     }
                                 }
                             }
-                            var finalTree = prop.m_finalTree;
-
-                            // mod begin
-                            // custom road trees
-                            if (finalTree != null && segmentData != null)
-                            {
-                                if (laneInfo.m_position < 0) // Left Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeLeft) != 0)
-                                    {
-                                        finalTree = segmentData.TreeLeftPrefab;
-                                    }
-                                }
-                                else if (laneInfo.m_position == 0) // Middle Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeMiddle) != 0)
-                                    {
-                                        finalTree = segmentData.TreeMiddlePrefab;
-                                    }
-                                }
-                                else // Right Trees
-                                {
-                                    if ((segmentData.Features & SegmentData.FeatureFlags.TreeRight) != 0)
-                                    {
-                                        finalTree = segmentData.TreeRightPrefab;
-                                    }
-                                }
-                            }
-                            // mod end
 
                             if (finalTree != null)
                             {
