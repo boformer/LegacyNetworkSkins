@@ -36,7 +36,6 @@ namespace NetworkSkins.Net
                 subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
                 subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
             }
-
             return subPrefabs;
         }
 

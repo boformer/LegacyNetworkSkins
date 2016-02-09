@@ -314,11 +314,12 @@ namespace NetworkSkins.Props
         /// <param name="endAngle"></param>
         /// <param name="invert"></param>
         /// <param name="layerMask"></param>
-        /// <param name="objectIndex"></param>
+        /// <param name="objectIndex1"></param>
+        /// <param name="objectIndex2"></param>
         /// <param name="data"></param>
         /// <param name="propIndex"></param>
-        public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, Color startColor, Color endColor, float startAngle, float endAngle, bool invert, int layerMask, Vector4 objectIndex, ref RenderManager.Instance data, ref int propIndex)
-        {
+        public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, Color startColor, Color endColor, float startAngle, float endAngle, bool invert, int layerMask, Vector4 objectIndex1, Vector4 objectIndex2, ref RenderManager.Instance data, ref int propIndex)
+        { 
             var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
@@ -499,11 +500,12 @@ namespace NetworkSkins.Props
                                                         vector.z += vector2.z * num9 * prop.m_position.x;
                                                     }
                                                 }
+                                                Vector4 objectIndex3 = (num5 <= 0.5f) ? objectIndex1 : objectIndex2;
                                                 num6 += prop_m_angle * 0.0174532924f;
                                                 PropInstance.RenderInstance(cameraInfo, variation, new InstanceID
                                                 {
                                                     NetSegment = segmentID
-                                                }, vector, scale, num6, color, objectIndex, true);
+                                                }, vector, scale, num6, color, objectIndex3, true);
                                             }
                                         }
                                     }
