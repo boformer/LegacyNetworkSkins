@@ -60,8 +60,6 @@ namespace NetworkSkins.Pillars
                     availablePillars.Add(prefab);
                 }
             }
-
-            // TODO Detect No Pillars and hide its "pillars" button
         }
 
         public void OnLevelUnloading()
