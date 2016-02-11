@@ -23,9 +23,29 @@ namespace NetworkSkins.Data
         // stores which options were selected by the user, per prefab
         private readonly Dictionary<NetInfo, SegmentData> _selectedSegmentOptions = new Dictionary<NetInfo, SegmentData>();
 
+        // stores which options were selected by the user, per prefab
+        private readonly Dictionary<NetInfo, SegmentData> _assetSegmentOptions = new Dictionary<NetInfo, SegmentData>();
+
+        // stores which options should be used (user or asset mode)
+        private bool _assetMode = false;
+
         // stores which data is applied to a network segment
         // this is an array field for high lookup performance
         public SegmentData[] SegmentToSegmentDataMap;
+
+        public void SetAssetMode(bool value) // TODO make property
+        {
+            _assetMode = value;
+
+            foreach (var entry in _assetSegmentOptions)
+            {
+                entry.Value.UsedCount--;
+                DeleteIfNotInUse(entry.Value);
+            }
+            _assetSegmentOptions.Clear();
+        }
+
+        public bool AssetMode => _assetMode;
 
         public override void OnCreated(ISerializableData serializableData)
         {
@@ -86,8 +106,6 @@ namespace NetworkSkins.Data
 
         public void OnLevelLoaded()
         {
-
-
             if (SegmentToSegmentDataMap == null)
             {
                 SegmentToSegmentDataMap = new SegmentData[NetManager.instance.m_segments.m_size];
@@ -98,6 +116,7 @@ namespace NetworkSkins.Data
         {
             _usedSegmentData.Clear();
             _selectedSegmentOptions.Clear();
+            _assetSegmentOptions.Clear();
             SegmentToSegmentDataMap = null;
         }
 
@@ -145,38 +164,42 @@ namespace NetworkSkins.Data
 
         public SegmentData GetActiveSegmentData(NetInfo prefab)
         {
+            var options = _assetMode ? _assetSegmentOptions : _selectedSegmentOptions;
+
             SegmentData segmentData;
-            _selectedSegmentOptions.TryGetValue(prefab, out segmentData);
+            options.TryGetValue(prefab, out segmentData);
             return segmentData;
         }
 
         public void SetActiveSegmentData(NetInfo prefab, SegmentData segmentData)
         {
+            var options = _assetMode ? _assetSegmentOptions : _selectedSegmentOptions;
+
             // Delete existing data if it is not used anymore
             var activeSegmentData = GetActiveSegmentData(prefab);
             if (activeSegmentData != null)
             {
-                _selectedSegmentOptions.Remove(prefab);
+                options.Remove(prefab);
                 activeSegmentData.UsedCount--;
-                DeleteIfNotInUse(segmentData);
+                DeleteIfNotInUse(activeSegmentData);
             }
 
             // No new data? Stop here
-            if (segmentData.Features == SegmentData.FeatureFlags.None) return;
+            if (segmentData == null || segmentData.Features == SegmentData.FeatureFlags.None) return;
 
             // Check if there is an equal data object
             var equalSegmentData = _usedSegmentData.FirstOrDefault(segmentData.Equals);
             if (equalSegmentData != null)
             {
                 // yes? use that, discard the one we created
-                _selectedSegmentOptions[prefab] = equalSegmentData;
+                options[prefab] = equalSegmentData;
                 equalSegmentData.UsedCount++;
             }
             else
             {
                 // no? Use the one we got
                 _usedSegmentData.Add(segmentData);
-                _selectedSegmentOptions[prefab] = segmentData;
+                options[prefab] = segmentData;
                 segmentData.UsedCount++;
             }
 
@@ -236,7 +259,8 @@ namespace NetworkSkins.Data
             {
                 var segmentMapUsedCount = SegmentToSegmentDataMap.Count(segmentData.Equals);
                 var segmentOptionsUsedCount = _selectedSegmentOptions.Values.Count(segmentData.Equals);
-                var calculatedUsedCount = segmentMapUsedCount + segmentOptionsUsedCount;
+                var assetOptionsUsedCount = _assetSegmentOptions.Values.Count(segmentData.Equals);
+                var calculatedUsedCount = segmentMapUsedCount + segmentOptionsUsedCount + assetOptionsUsedCount;
 
                 if (segmentMapUsedCount > 0) result = true;
 
