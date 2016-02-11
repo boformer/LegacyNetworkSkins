@@ -41,7 +41,7 @@ namespace NetworkSkins.Data
         [NonSerialized]
         public int UsedCount = 0;
 
-        private SegmentData() {}
+        public SegmentData() {}
 
         public SegmentData(SegmentData segmentData)
         {

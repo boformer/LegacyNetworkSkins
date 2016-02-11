@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using ColossalFramework.Math;
+using NetworkSkins.Data;
 using NetworkSkins.Detour;
 using UnityEngine;
 
@@ -91,6 +92,11 @@ namespace NetworkSkins.Net
                             MoveMiddleNode_releasedSegment = 0;
                         }
                     }
+                    else if (caller2 == "LoadPaths") // segment created because user placed building with integrated networks
+                    {
+                        // TODO SementDataManager should not appear here. Instead, add argument to CreateEvent!
+                        if (SegmentDataManager.Instance.AssetMode && success) EventSegmentCreate?.Invoke(segment);
+                    }
                     break;
 
                 case "MoveMiddleNode": // segment that was modified because user added network, apply style of previous segment
@@ -145,10 +151,7 @@ namespace NetworkSkins.Net
                     break;
 
                 case "DeleteSegmentImpl": // segment deleted with bulldozer by user, delete data
-
-                    EventSegmentRelease?.Invoke(segment);
-                    break;
-
+                case "ReleasePaths": // segment deleted because user bulldozed building with integrated networks, delete data
                 default: // unknown caller, delete data
 
                     EventSegmentRelease?.Invoke(segment);
