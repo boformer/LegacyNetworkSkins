@@ -60,6 +60,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Buildings\BuildingNetworkSkinsDef.cs" />
+    <Compile Include="Buildings\BuildingToolWatcher.cs" />
     <Compile Include="Data\SegmentDataManager.cs" />
     <Compile Include="Detour\RedirectionHelper.cs" />
     <Compile Include="Detour\RenderManagerDetour.cs" />
@@ -73,14 +75,13 @@
     <Compile Include="Net\NetUtil.cs" />
     <Compile Include="Pillars\PillarCustomizer.cs" />
     <Compile Include="Pillars\UIPillarOption.cs" />
-    <Compile Include="Props\Detour\NetInfoDetour.cs" />
-    <Compile Include="Props\Detour\NetLaneDetour.cs" />
-    <Compile Include="Props\Detour\NetManagerDetour.cs" />
+    <Compile Include="Props\NetLaneDetour.cs" />
     <Compile Include="Props\PropCustomizer.cs" />
     <Compile Include="Data\SegmentData.cs" />
     <Compile Include="Net\LanePosition.cs" />
-    <Compile Include="Props\UI\UILightOption.cs" />
-    <Compile Include="Props\UI\UITreeOption.cs" />
+    <Compile Include="Props\UILightOption.cs" />
+    <Compile Include="Props\UITreeOption.cs" />
+    <Compile Include="Textures\NetSegmentDetour.cs" />
     <Compile Include="UI\UIDropDownOption.cs" />
     <Compile Include="UI\UIOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
