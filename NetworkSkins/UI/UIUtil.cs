@@ -2,12 +2,16 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using ColossalFramework.UI;
+using ICities;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace NetworkSkins.UI
 {
     public class UIUtil
     {
+        private static readonly string kSliderTemplate = "OptionsSliderTemplate";
+
         private const float LABEL_RELATIVE_WIDTH = .25f;
         private const float COLUMN_PADDING = 5f;
 
@@ -89,6 +93,42 @@ namespace NetworkSkins.UI
 
             return dropDown;
         }
+
+        /*
+        public static UISlider CreatSliderWithLabel(out UILabel label, UIComponent parent, string labelText, float width)
+        {
+            var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
+
+            var slider = UIUtil.CreateSlider(parent);
+            slider.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
+            slider.width = width - labelWidth - COLUMN_PADDING;
+
+            label = AddLabel(parent, labelText, labelWidth, dropDown.height);
+
+            return slider;
+        }*/
+
+        public static UIPanel CreateSlider(UIComponent parent, string text, float min, float max, float step, float defaultValue, [NotNull] OnValueChanged eventCallback)
+        {
+            if (eventCallback == null) throw new ArgumentNullException(nameof(eventCallback));
+
+            UIPanel uIPanel = parent.AttachUIComponent(UITemplateManager.GetAsGameObject(kSliderTemplate)) as UIPanel;
+            uIPanel.position = Vector3.zero;
+
+            uIPanel.Find<UILabel>("Label").text = text;
+
+            UISlider uISlider = uIPanel.Find<UISlider>("Slider");
+            uISlider.minValue = min;
+            uISlider.maxValue = max;
+            uISlider.stepSize = step;
+            uISlider.value = defaultValue;
+            uISlider.eventValueChanged += delegate (UIComponent c, float val)
+            {
+                eventCallback(val);
+            };
+            return uIPanel;
+        }
+
 
         public static string GenerateBeautifiedPrefabName(PrefabInfo prefab)
         {

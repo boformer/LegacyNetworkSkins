@@ -79,7 +79,9 @@
     <Compile Include="Props\PropCustomizer.cs" />
     <Compile Include="Data\SegmentData.cs" />
     <Compile Include="Net\LanePosition.cs" />
+    <Compile Include="Props\UILightDistanceOption.cs" />
     <Compile Include="Props\UILightOption.cs" />
+    <Compile Include="Props\UITreeDistanceOption.cs" />
     <Compile Include="Props\UITreeOption.cs" />
     <Compile Include="Textures\NetSegmentDetour.cs" />
     <Compile Include="UI\UIDropDownOption.cs" />
@@ -88,6 +90,7 @@
     <Compile Include="UI\UINetworkSkinsPanel.cs" />
     <Compile Include="Pillars\PillarType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\UISliderOption.cs" />
     <Compile Include="UI\UIUtil.cs" />
   </ItemGroup>
   <ItemGroup />

@@ -16,6 +16,7 @@ namespace NetworkSkins.Props
 
         private readonly List<TreeInfo> _availableTrees = new List<TreeInfo>();
         private readonly List<PropInfo> _availableStreetLights = new List<PropInfo>();
+
         public int[] StreetLightPrefabDataIndices;
 
         public override void OnCreated(ILoading loading)
@@ -222,6 +223,128 @@ namespace NetworkSkins.Props
             }
 
             SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+        }
+
+        public void SetStreetLightDistance(NetInfo prefab, float val)
+        {
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+
+            var distanceVector = newSegmentData.RepeatDistances;
+            distanceVector.w = Math.Abs(val - GetDefaultStreetLightDistance(prefab)) > .01f ? val : 0f;
+
+            if (distanceVector != Vector4.zero)
+            {
+                newSegmentData.SetStructFeature(SegmentData.FeatureFlags.RepeatDistances, distanceVector);
+            }
+            else
+            {
+                newSegmentData.UnsetFeature(SegmentData.FeatureFlags.RepeatDistances);
+            }
+
+            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+        }
+
+        public void SetTreeDistance(NetInfo prefab, LanePosition position, float val)
+        {
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+
+            var distanceVector = newSegmentData.RepeatDistances;
+            var value = Mathf.Abs(val - GetDefaultTreeDistance(prefab, position)) > .01f ? val : 0f;
+
+            switch (position)
+            {
+                case LanePosition.Left:
+                    distanceVector.x = value;
+                    break;
+                case LanePosition.Middle:
+                    distanceVector.y = value;
+                    break;
+                case LanePosition.Right:
+                    distanceVector.z = value;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(position));
+            }
+
+            if (distanceVector != Vector4.zero)
+            {
+                newSegmentData.SetStructFeature(SegmentData.FeatureFlags.RepeatDistances, distanceVector);
+            }
+            else
+            {
+                newSegmentData.UnsetFeature(SegmentData.FeatureFlags.RepeatDistances);
+            }
+
+            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+        }
+
+        public float GetDefaultStreetLightDistance(NetInfo prefab)
+        {
+            if (prefab.m_lanes == null) return -1f;
+
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null)
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalProp != null && _availableStreetLights.Contains(laneProp.m_finalProp)) return laneProp.m_repeatDistance;
+                    }
+
+            return -1f;
+        }
+
+        public float GetDefaultTreeDistance(NetInfo prefab, LanePosition position)
+        {
+            if (prefab.m_lanes == null) return -1f;
+
+            foreach (var lane in prefab.m_lanes)
+                if (lane?.m_laneProps?.m_props != null && position.IsCorrectSide(lane.m_position))
+                    foreach (var laneProp in lane.m_laneProps.m_props)
+                    {
+                        if (laneProp?.m_finalTree != null) return laneProp.m_repeatDistance;
+                    }
+
+            return -1f;
+        }
+
+        public float GetActiveStreetLightDistance(NetInfo prefab)
+        {
+            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+
+            if (segmentData != null && segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.RepeatDistances) && segmentData.RepeatDistances.w > 0f)
+            {
+                return segmentData.RepeatDistances.w;
+            }
+            else
+            {
+                return GetDefaultStreetLightDistance(prefab);
+            }
+        }
+
+
+        public float GetActiveTreeDistance(NetInfo prefab, LanePosition position)
+        {
+            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+
+            var result = 0f;
+            if (segmentData != null && segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.RepeatDistances))
+            {
+                switch (position)
+                {
+                    case LanePosition.Left:
+                        result = segmentData.RepeatDistances.x;
+                        break;
+                    case LanePosition.Middle:
+                        result = segmentData.RepeatDistances.y;
+                        break;
+                    case LanePosition.Right:
+                        result = segmentData.RepeatDistances.z;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(position));
+                }
+            }
+
+            return result > 0f ? result : GetDefaultTreeDistance(prefab, position);
         }
     }
 }
