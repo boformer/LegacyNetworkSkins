@@ -133,7 +133,7 @@ namespace NetworkSkins.Props
 
         public TreeInfo GetActiveTree(NetInfo prefab, LanePosition position)
         {
-            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+            var segmentData = SegmentDataManager.Instance.GetActiveOptions(prefab);
 
             if (segmentData == null || !segmentData.Features.IsFlagSet(position.ToTreeFeatureFlag()))
             {
@@ -153,7 +153,7 @@ namespace NetworkSkins.Props
 
         public PropInfo GetActiveStreetLight(NetInfo prefab)
         {
-            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+            var segmentData = SegmentDataManager.Instance.GetActiveOptions(prefab);
 
             if (segmentData == null || !segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.StreetLight))
             {
@@ -195,7 +195,7 @@ namespace NetworkSkins.Props
 
         public void SetTree(NetInfo prefab, LanePosition position, TreeInfo tree)
         {
-            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveOptions(prefab));
 
             if (tree != GetDefaultTree(prefab, position))
             {
@@ -206,12 +206,12 @@ namespace NetworkSkins.Props
                 newSegmentData.UnsetFeature(position.ToTreeFeatureFlag());
             }
 
-            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+            SegmentDataManager.Instance.SetActiveOptions(prefab, newSegmentData);
         }
 
         public void SetStreetLight(NetInfo prefab, PropInfo prop)
         {
-            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveOptions(prefab));
 
             if (prop != GetDefaultStreetLight(prefab))
             {
@@ -222,12 +222,12 @@ namespace NetworkSkins.Props
                 newSegmentData.UnsetFeature(SegmentData.FeatureFlags.StreetLight);
             }
 
-            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+            SegmentDataManager.Instance.SetActiveOptions(prefab, newSegmentData);
         }
 
         public void SetStreetLightDistance(NetInfo prefab, float val)
         {
-            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveOptions(prefab));
 
             var distanceVector = newSegmentData.RepeatDistances;
             distanceVector.w = Math.Abs(val - GetDefaultStreetLightDistance(prefab)) > .01f ? val : 0f;
@@ -241,12 +241,12 @@ namespace NetworkSkins.Props
                 newSegmentData.UnsetFeature(SegmentData.FeatureFlags.RepeatDistances);
             }
 
-            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+            SegmentDataManager.Instance.SetActiveOptions(prefab, newSegmentData);
         }
 
         public void SetTreeDistance(NetInfo prefab, LanePosition position, float val)
         {
-            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveSegmentData(prefab));
+            var newSegmentData = new SegmentData(SegmentDataManager.Instance.GetActiveOptions(prefab));
 
             var distanceVector = newSegmentData.RepeatDistances;
             var value = Mathf.Abs(val - GetDefaultTreeDistance(prefab, position)) > .01f ? val : 0f;
@@ -275,7 +275,7 @@ namespace NetworkSkins.Props
                 newSegmentData.UnsetFeature(SegmentData.FeatureFlags.RepeatDistances);
             }
 
-            SegmentDataManager.Instance.SetActiveSegmentData(prefab, newSegmentData);
+            SegmentDataManager.Instance.SetActiveOptions(prefab, newSegmentData);
         }
 
         public float GetDefaultStreetLightDistance(NetInfo prefab)
@@ -308,7 +308,7 @@ namespace NetworkSkins.Props
 
         public float GetActiveStreetLightDistance(NetInfo prefab)
         {
-            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+            var segmentData = SegmentDataManager.Instance.GetActiveOptions(prefab);
 
             if (segmentData != null && segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.RepeatDistances) && segmentData.RepeatDistances.w > 0f)
             {
@@ -323,7 +323,7 @@ namespace NetworkSkins.Props
 
         public float GetActiveTreeDistance(NetInfo prefab, LanePosition position)
         {
-            var segmentData = SegmentDataManager.Instance.GetActiveSegmentData(prefab);
+            var segmentData = SegmentDataManager.Instance.GetActiveOptions(prefab);
 
             var result = 0f;
             if (segmentData != null && segmentData.Features.IsFlagSet(SegmentData.FeatureFlags.RepeatDistances))

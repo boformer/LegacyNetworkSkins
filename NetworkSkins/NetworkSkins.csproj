@@ -85,6 +85,7 @@
     <Compile Include="Props\UITreeOption.cs" />
     <Compile Include="Textures\NetSegmentDetour.cs" />
     <Compile Include="UI\UIDropDownOption.cs" />
+    <Compile Include="UI\UIDropDownTextFieldOption.cs" />
     <Compile Include="UI\UIOption.cs" />
     <Compile Include="NetworkSkinsMod.cs" />
     <Compile Include="UI\UINetworkSkinsPanel.cs" />

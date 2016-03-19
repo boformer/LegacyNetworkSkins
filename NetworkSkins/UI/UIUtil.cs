@@ -27,6 +27,29 @@ namespace NetworkSkins.UI
 
             return dropDown;
         }
+
+
+        public static UIDropDown CreateDropDownTextFieldWithLabel(out UILabel label, out UITextField textField, UIComponent parent, string labelText, float width)
+        {
+            var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
+            var textFieldWidth = 35f;
+            var dropDownWidth = width - labelWidth - textFieldWidth - 2 * COLUMN_PADDING;
+
+
+            var dropDown = UIUtil.CreateDropDown(parent);
+            dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
+            dropDown.width = dropDownWidth;
+
+            textField = UIUtil.CreateTextField(parent);
+            textField.relativePosition = new Vector3(labelWidth + dropDownWidth + 2 * COLUMN_PADDING, 0);
+            textField.width = textFieldWidth;
+            textField.height = dropDown.height;
+
+            label = AddLabel(parent, labelText, labelWidth, dropDown.height);
+
+            return dropDown;
+        }
+
         private static UILabel AddLabel(UIComponent parent, string text, float width, float dropDownHeight)
         {
             var label = parent.AddUIComponent<UILabel>();
@@ -40,6 +63,29 @@ namespace NetworkSkins.UI
             label.relativePosition = new Vector3(0, Mathf.Round((dropDownHeight - label.height) / 2));
 
             return label;
+        }
+
+        private static UITextField CreateTextField(UIComponent parent)
+        {
+            var textField = parent.AddUIComponent<UITextField>();
+
+            textField.size = new Vector2(90f, 20f);
+            textField.padding = new RectOffset(0, 0, 7, 0);
+            textField.builtinKeyNavigation = true;
+            textField.isInteractive = true;
+            textField.readOnly = false;
+            textField.horizontalAlignment = UIHorizontalAlignment.Center;
+            textField.selectionSprite = "EmptySprite";
+            textField.selectionBackgroundColor = new Color32(0, 172, 234, 255);
+            textField.normalBgSprite = "TextFieldPanel";
+            textField.hoveredBgSprite = "TextFieldPanelHovered";
+            textField.focusedBgSprite = "TextFieldPanelHovered";
+            textField.textColor = new Color32(0, 0, 0, 255);
+            textField.disabledTextColor = new Color32(0, 0, 0, 128);
+            textField.color = new Color32(255, 255, 255, 255);
+            textField.eventGotFocus += (component, param) => component.color = new Color32(253, 227, 144, 255);
+            textField.eventLostFocus += (component, param) => component.color = new Color32(255, 255, 255, 255);
+            return textField;
         }
 
         public static UIDropDown CreateDropDown(UIComponent parent)
