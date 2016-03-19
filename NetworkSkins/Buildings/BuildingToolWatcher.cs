@@ -90,7 +90,7 @@ namespace NetworkSkins.Buildings
                 SetPillarFeature(netInfo, networkDef.BridgePillar, PillarType.BridgePillar, _userModeBridgePillars);
                 SetPillarFeature(netInfo, networkDef.MiddlePillar, PillarType.MiddlePillar, _userModeMiddlePillars);
 
-                SegmentDataManager.Instance.SetActiveSegmentData(netInfo, data);
+                SegmentDataManager.Instance.SetActiveOptions(netInfo, data);
             }
         }
 

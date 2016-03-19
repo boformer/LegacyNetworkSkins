@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using NetworkSkins.UI;
+using UnityEngine;
 
 namespace NetworkSkins.Props
 {
-    public class UILightOption : UIDropDownOption
+    public class UILightOption : UIDropDownTextFieldOption
     {
         private List<PropInfo> _availableStreetLights;
+
+        private bool ignoreTextFieldChanged = false;
 
         protected override void Initialize() 
         {
@@ -35,10 +40,20 @@ namespace NetworkSkins.Props
                     if (prop == activeProp) DropDown.selectedIndex = DropDown.items.Length - 1;
                 }
 
+                var defaultDistance = PropCustomizer.Instance.GetDefaultStreetLightDistance(SelectedPrefab);
+                var activeDistance = PropCustomizer.Instance.GetActiveStreetLightDistance(SelectedPrefab);
+                TextField.text = activeDistance.ToString(CultureInfo.InvariantCulture);
+                TextField.tooltip = $"Distance between street lights in m (default {defaultDistance})\nValue must be between 1 and 100!";
+
                 if (_availableStreetLights.Count >= 2)
                 {
-                    return true;
+                    DropDown.Enable();
                 }
+                else
+                {
+                    DropDown.Disable();
+                }
+                return true;
             }
             return false;
         }
@@ -60,6 +75,28 @@ namespace NetworkSkins.Props
         protected override void OnSelectionChanged(int index)
         {
             PropCustomizer.Instance.SetStreetLight(SelectedPrefab, _availableStreetLights[index]);
+        }
+
+
+        protected override void OnTextChanged(string value)
+        {
+            if (ignoreTextFieldChanged) return;
+
+            float distance;
+
+            try
+            {
+                distance = Mathf.Clamp(Convert.ToSingle(value), 1f, 100f);
+                PropCustomizer.Instance.SetStreetLightDistance(SelectedPrefab, distance);
+            }
+            catch
+            {
+                distance = PropCustomizer.Instance.GetActiveStreetLightDistance(SelectedPrefab);
+            }
+
+            ignoreTextFieldChanged = true;
+            TextField.text = distance.ToString(CultureInfo.InvariantCulture);
+            ignoreTextFieldChanged = false;
         }
     }
 }

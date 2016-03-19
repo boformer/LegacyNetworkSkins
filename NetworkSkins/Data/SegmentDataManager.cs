@@ -12,7 +12,60 @@ namespace NetworkSkins.Data
 {
     public class SegmentDataManager : SerializableDataExtensionBase
     {
-        private const string DataId = "NetworkSkins_SEGMENTS";
+        public class OptionsData : IDataContainer
+        {
+            public void Serialize(DataSerializer s)
+            {
+                var count = SegmentDataManager.Instance._selectedSegmentOptions.Count;
+                s.WriteInt32(count);
+
+#if DEBUG
+                Debug.Log($"Serializing {count} active options");
+#endif
+
+                foreach (var selectedOption in SegmentDataManager.Instance._selectedSegmentOptions)
+                {
+#if DEBUG
+                    Debug.Log($"{selectedOption.Key.name} --> {selectedOption.Value.ToString()}");
+#endif
+
+                    s.WriteUniqueString(selectedOption.Key.name);
+                    selectedOption.Value.Serialize(s);
+                }
+            }
+
+            public void Deserialize(DataSerializer s)
+            {
+                var count = s.ReadInt32();
+
+#if DEBUG
+            Debug.Log($"Deserializing {count} active options");
+#endif
+
+                for (var i = 0; i < count; i++)
+                {
+                    var prefabName = s.ReadUniqueString();
+
+                    var prefab = PrefabCollection<NetInfo>.FindLoaded(prefabName);
+                    if (prefab == null) continue;
+
+                    var options = new SegmentData();
+                    options.Deserialize(s);
+
+#if DEBUG
+                    Debug.Log($"{prefabName} --> {options.ToString()}");
+#endif
+                    SegmentDataManager.Instance.SetActiveOptions(prefab, options);
+                }
+            }
+
+            public void AfterDeserialize(DataSerializer s)
+            {
+            }
+        }
+
+        private const string SegmentDataId = "NetworkSkins_SEGMENTS";
+        private const string SelectedOptionsId = "NetworkSkins_SELECTED_OPTIONS";
         private const uint DataVersion = 0;
 
         public static SegmentDataManager Instance;
@@ -67,7 +120,21 @@ namespace NetworkSkins.Data
         {
             if (mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.LoadMap) return;
 
-            var data = serializableDataManager.LoadData(DataId);
+            DeserializeSegmentDataMap();
+            DeserializeActiveOptions();
+
+            foreach (var segmentData in _usedSegmentData)
+            {
+                segmentData.UsedCount = SegmentToSegmentDataMap.Count(segmentData.Equals);
+                segmentData.FindPrefabs(); // Find the prefabs for the loaded names
+            }
+
+            CleanupData();
+        }
+
+        private void DeserializeSegmentDataMap()
+        {
+            var data = serializableDataManager.LoadData(SegmentDataId);
 
             if (data != null)
             {
@@ -75,11 +142,10 @@ namespace NetworkSkins.Data
                 {
                     using (var stream = new MemoryStream(data))
                     {
-                        SegmentToSegmentDataMap = DataSerializer.DeserializeArray<SegmentData>(stream,
-                            DataSerializer.Mode.Memory);
+                        SegmentToSegmentDataMap = DataSerializer.DeserializeArray<SegmentData>(stream, DataSerializer.Mode.Memory);
                     }
 
-                    Debug.LogFormat("Network Skins: Data loaded (Data length: {0})", data.Length);
+                    Debug.LogFormat("Network Skins: Selected Data loaded (Data length: {0})", data.Length);
                 }
                 catch (Exception e)
                 {
@@ -90,18 +156,35 @@ namespace NetworkSkins.Data
             if (SegmentToSegmentDataMap == null)
             {
                 SegmentToSegmentDataMap = new SegmentData[NetManager.instance.m_segments.m_size];
-                Debug.Log("Network Skins: No data found!");
+                Debug.Log("Network Skins: No segment data found!");
             }
 
             _usedSegmentData.AddRange(SegmentToSegmentDataMap.Distinct().Where(segmentData => segmentData != null));
+        }
 
-            foreach (var segmentData in _usedSegmentData)
+        private void DeserializeActiveOptions()
+        {
+            var selectedData = serializableDataManager.LoadData(SelectedOptionsId);
+            if (selectedData == null)
             {
-                segmentData.UsedCount = SegmentToSegmentDataMap.Count(segmentData.Equals);
-                segmentData.FindPrefabs(); // Find the prefabs for the loaded names
+                Debug.Log("Network Skins: No select options data found!");
+                return;
             }
 
-            CleanupData();
+            try
+            {
+                using (var stream = new MemoryStream(selectedData))
+                {
+                    DataSerializer.Deserialize<OptionsData>(stream, DataSerializer.Mode.Memory);
+                }
+
+                Debug.LogFormat("Network Skins: Selected Options loaded (Data length: {0})", selectedData.Length);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return;
+            }
         }
 
         public void OnLevelLoaded()
@@ -137,6 +220,12 @@ namespace NetworkSkins.Data
         {
             base.OnSaveData();
 
+            SerializeSegmentData();
+            SerializeActiveOptions();
+        }
+
+        private void SerializeSegmentData()
+        {
             var saveRequired = CleanupData();
 
             // check if data must be saved
@@ -150,19 +239,46 @@ namespace NetworkSkins.Data
                     data = stream.ToArray();
                 }
 
-                serializableDataManager.SaveData(DataId, data);
+                serializableDataManager.SaveData(SegmentDataId, data);
 
-                Debug.LogFormat("Network Skins: Data Saved (Data length: {0})", data.Length);
+                Debug.LogFormat("Network Skins: Segment Data Saved (Data length: {0})", data.Length);
             }
             else
             {
-                serializableDataManager.EraseData(DataId);
+                serializableDataManager.EraseData(SegmentDataId);
 
-                Debug.Log("Network Skins: Data Cleared!");
+                Debug.Log("Network Skins: Segment Data Cleared!");
             }
         }
 
-        public SegmentData GetActiveSegmentData(NetInfo prefab)
+        private void SerializeActiveOptions()
+        {
+            var saveRequired = _selectedSegmentOptions.Count > 0;
+
+            // check if data must be saved
+            if (saveRequired)
+            {
+                byte[] data;
+
+                using (var stream = new MemoryStream())
+                {
+                    DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, DataVersion, new OptionsData());
+                    data = stream.ToArray();
+                }
+
+                serializableDataManager.SaveData(SelectedOptionsId, data);
+
+                Debug.LogFormat("Network Skins: Selected Options Saved (Data length: {0})", data.Length);
+            }
+            else
+            {
+                serializableDataManager.EraseData(SelectedOptionsId);
+
+                Debug.Log("Network Skins: Selected Options Data Cleared!");
+            }
+        }
+
+        public SegmentData GetActiveOptions(NetInfo prefab)
         {
             var options = _assetMode ? _assetSegmentOptions : _selectedSegmentOptions;
 
@@ -171,12 +287,12 @@ namespace NetworkSkins.Data
             return segmentData;
         }
 
-        public void SetActiveSegmentData(NetInfo prefab, SegmentData segmentData)
+        public void SetActiveOptions(NetInfo prefab, SegmentData segmentOptions)
         {
             var options = _assetMode ? _assetSegmentOptions : _selectedSegmentOptions;
 
             // Delete existing data if it is not used anymore
-            var activeSegmentData = GetActiveSegmentData(prefab);
+            var activeSegmentData = GetActiveOptions(prefab);
             if (activeSegmentData != null)
             {
                 options.Remove(prefab);
@@ -185,10 +301,10 @@ namespace NetworkSkins.Data
             }
 
             // No new data? Stop here
-            if (segmentData == null || segmentData.Features == SegmentData.FeatureFlags.None) return;
+            if (segmentOptions == null || segmentOptions.Features == SegmentData.FeatureFlags.None) return;
 
             // Check if there is an equal data object
-            var equalSegmentData = _usedSegmentData.FirstOrDefault(segmentData.Equals);
+            var equalSegmentData = _usedSegmentData.FirstOrDefault(segmentOptions.Equals);
             if (equalSegmentData != null)
             {
                 // yes? use that, discard the one we created
@@ -198,9 +314,9 @@ namespace NetworkSkins.Data
             else
             {
                 // no? Use the one we got
-                _usedSegmentData.Add(segmentData);
-                options[prefab] = segmentData;
-                segmentData.UsedCount++;
+                _usedSegmentData.Add(segmentOptions);
+                options[prefab] = segmentOptions;
+                segmentOptions.UsedCount++;
             }
 
         }
@@ -210,7 +326,7 @@ namespace NetworkSkins.Data
             if (SegmentToSegmentDataMap == null) return;
 
             var prefab = NetManager.instance.m_segments.m_buffer[segment].Info;
-            var segmentData = GetActiveSegmentData(prefab);
+            var segmentData = GetActiveOptions(prefab);
             SegmentToSegmentDataMap[segment] = segmentData;
 
             if (segmentData != null) segmentData.UsedCount++;

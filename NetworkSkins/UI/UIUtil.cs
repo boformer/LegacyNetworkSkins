@@ -2,12 +2,16 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using ColossalFramework.UI;
+using ICities;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace NetworkSkins.UI
 {
     public class UIUtil
     {
+        private static readonly string kSliderTemplate = "OptionsSliderTemplate";
+
         private const float LABEL_RELATIVE_WIDTH = .25f;
         private const float COLUMN_PADDING = 5f;
 
@@ -23,6 +27,29 @@ namespace NetworkSkins.UI
 
             return dropDown;
         }
+
+
+        public static UIDropDown CreateDropDownTextFieldWithLabel(out UILabel label, out UITextField textField, UIComponent parent, string labelText, float width)
+        {
+            var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
+            var textFieldWidth = 35f;
+            var dropDownWidth = width - labelWidth - textFieldWidth - 2 * COLUMN_PADDING;
+
+
+            var dropDown = UIUtil.CreateDropDown(parent);
+            dropDown.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
+            dropDown.width = dropDownWidth;
+
+            textField = UIUtil.CreateTextField(parent);
+            textField.relativePosition = new Vector3(labelWidth + dropDownWidth + 2 * COLUMN_PADDING, 0);
+            textField.width = textFieldWidth;
+            textField.height = dropDown.height;
+
+            label = AddLabel(parent, labelText, labelWidth, dropDown.height);
+
+            return dropDown;
+        }
+
         private static UILabel AddLabel(UIComponent parent, string text, float width, float dropDownHeight)
         {
             var label = parent.AddUIComponent<UILabel>();
@@ -36,6 +63,29 @@ namespace NetworkSkins.UI
             label.relativePosition = new Vector3(0, Mathf.Round((dropDownHeight - label.height) / 2));
 
             return label;
+        }
+
+        private static UITextField CreateTextField(UIComponent parent)
+        {
+            var textField = parent.AddUIComponent<UITextField>();
+
+            textField.size = new Vector2(90f, 20f);
+            textField.padding = new RectOffset(0, 0, 7, 0);
+            textField.builtinKeyNavigation = true;
+            textField.isInteractive = true;
+            textField.readOnly = false;
+            textField.horizontalAlignment = UIHorizontalAlignment.Center;
+            textField.selectionSprite = "EmptySprite";
+            textField.selectionBackgroundColor = new Color32(0, 172, 234, 255);
+            textField.normalBgSprite = "TextFieldPanel";
+            textField.hoveredBgSprite = "TextFieldPanelHovered";
+            textField.focusedBgSprite = "TextFieldPanelHovered";
+            textField.textColor = new Color32(0, 0, 0, 255);
+            textField.disabledTextColor = new Color32(0, 0, 0, 128);
+            textField.color = new Color32(255, 255, 255, 255);
+            textField.eventGotFocus += (component, param) => component.color = new Color32(253, 227, 144, 255);
+            textField.eventLostFocus += (component, param) => component.color = new Color32(255, 255, 255, 255);
+            return textField;
         }
 
         public static UIDropDown CreateDropDown(UIComponent parent)
@@ -89,6 +139,42 @@ namespace NetworkSkins.UI
 
             return dropDown;
         }
+
+        /*
+        public static UISlider CreatSliderWithLabel(out UILabel label, UIComponent parent, string labelText, float width)
+        {
+            var labelWidth = Mathf.Round(width * LABEL_RELATIVE_WIDTH);
+
+            var slider = UIUtil.CreateSlider(parent);
+            slider.relativePosition = new Vector3(labelWidth + COLUMN_PADDING, 0);
+            slider.width = width - labelWidth - COLUMN_PADDING;
+
+            label = AddLabel(parent, labelText, labelWidth, dropDown.height);
+
+            return slider;
+        }*/
+
+        public static UIPanel CreateSlider(UIComponent parent, string text, float min, float max, float step, float defaultValue, [NotNull] OnValueChanged eventCallback)
+        {
+            if (eventCallback == null) throw new ArgumentNullException(nameof(eventCallback));
+
+            UIPanel uIPanel = parent.AttachUIComponent(UITemplateManager.GetAsGameObject(kSliderTemplate)) as UIPanel;
+            uIPanel.position = Vector3.zero;
+
+            uIPanel.Find<UILabel>("Label").text = text;
+
+            UISlider uISlider = uIPanel.Find<UISlider>("Slider");
+            uISlider.minValue = min;
+            uISlider.maxValue = max;
+            uISlider.stepSize = step;
+            uISlider.value = defaultValue;
+            uISlider.eventValueChanged += delegate (UIComponent c, float val)
+            {
+                eventCallback(val);
+            };
+            return uIPanel;
+        }
+
 
         public static string GenerateBeautifiedPrefabName(PrefabInfo prefab)
         {

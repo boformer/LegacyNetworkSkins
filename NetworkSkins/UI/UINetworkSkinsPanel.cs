@@ -109,15 +109,21 @@ namespace NetworkSkins.UI
 
             // Add some example options
             GetPage(NetType.Ground).AddUIComponent<UILightOption>();
+            //GetPage(NetType.Ground).AddUIComponent<UILightDistanceOption>();
             GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Left;
+            //GetPage(NetType.Ground).AddUIComponent<UITreeDistanceOption>().LanePosition = LanePosition.Left;
             GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Middle;
+            //GetPage(NetType.Ground).AddUIComponent<UITreeDistanceOption>().LanePosition = LanePosition.Middle;
             GetPage(NetType.Ground).AddUIComponent<UITreeOption>().LanePosition = LanePosition.Right;
+            //GetPage(NetType.Ground).AddUIComponent<UITreeDistanceOption>().LanePosition = LanePosition.Right;
 
             GetPage(NetType.Elevated).AddUIComponent<UILightOption>();
+            //GetPage(NetType.Elevated).AddUIComponent<UILightDistanceOption>();
             GetPage(NetType.Elevated).AddUIComponent<UIPillarOption>().PillarType = PillarType.BridgePillar;
             //GetPage(NetType.ELEVATED).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
 
             GetPage(NetType.Bridge).AddUIComponent<UILightOption>();
+            //GetPage(NetType.Bridge).AddUIComponent<UILightDistanceOption>();
             GetPage(NetType.Bridge).AddUIComponent<UIPillarOption>().PillarType = PillarType.BridgePillar;
             //GetPage(NetType.BRIDGE).AddUIComponent<UIPillarOption>().PillarType = PillarType.MIDDLE_PILLAR;
             //GetPage(NetType.BRIDGE).AddUIComponent<UIBridgeTypeOption>();

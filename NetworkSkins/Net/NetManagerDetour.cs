@@ -70,15 +70,20 @@ namespace NetworkSkins.Net
             RedirectionHelper.RedirectCalls(_NetManager_CreateSegment_original, _NetManager_CreateSegment_detour);
 
             var caller = new System.Diagnostics.StackFrame(1).GetMethod().Name;
+            //Debug.Log("CreateSegment (" + info.name + ") called by " + caller);
 
             switch (caller)
             {
                 case "CreateNode":
 
                     var caller2 = new System.Diagnostics.StackFrame(2).GetMethod().Name;
+                    //Debug.Log("... called by " + caller2);
+
                     if (caller2 == "CreateNode") // check that caller was called by NetTool
                     {
                         var caller3Type = new System.Diagnostics.StackFrame(3).GetMethod().DeclaringType?.Name;
+                        //Debug.Log("... called by " + caller3Type);
+
                         if (caller3Type != null && caller3Type.StartsWith("NetTool", StringComparison.Ordinal)) // new segment created by user, apply selected style
                         // use StartsWith to cover NetToolFine from FineRoadHeights, and other possible NetTools
                         {
@@ -129,6 +134,7 @@ namespace NetworkSkins.Net
         public new void ReleaseSegment(ushort segment, bool keepNodes)
         {
             var caller = new System.Diagnostics.StackFrame(1).GetMethod().Name;
+            //Debug.Log("ReleaseSegment (" + NetManager.instance.m_segments.m_buffer[segment].Info.name + ") called by " + caller);
 
             switch (caller)
             {

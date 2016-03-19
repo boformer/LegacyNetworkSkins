@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using ColossalFramework;
 using ColossalFramework.Math;
@@ -502,10 +503,20 @@ namespace NetworkSkins.Props
                                                 }
                                                 Vector4 objectIndex3 = (num5 <= 0.5f) ? objectIndex1 : objectIndex2;
                                                 num6 += prop_m_angle * 0.0174532924f;
+
                                                 PropInstance.RenderInstance(cameraInfo, variation, new InstanceID
                                                 {
                                                     NetSegment = segmentID
                                                 }, vector, scale, num6, color, objectIndex3, true);
+                                                /*
+                                                catch // debug code
+                                                {
+                                                    throw new Exception($"DEBUG: Prop Rendering Error\n" +
+                                                              $"Net Name: {NetManager.instance.m_segments.m_buffer[segmentID].Info?.name}\n" +
+                                                              $"Prop Name: {finalProp?.name}\n" +
+                                                              $"Variation Name: {variation?.name}\n" +
+                                                              $"Camera exists? {cameraInfo != null}");
+                                                }*/
                                             }
                                         }
                                     }
@@ -834,9 +845,9 @@ namespace NetworkSkins.Props
                             // mod end
 
                             var num2 = 2;
-                            if (prop.m_repeatDistance > 1f)
+                            if (repeatDistance > 1f)
                             {
-                                num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / prop.m_repeatDistance));
+                                num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / repeatDistance));
                             }
                             var num3 = prop.m_segmentOffset * 0.5f;
                             if (_this.m_length != 0f)
