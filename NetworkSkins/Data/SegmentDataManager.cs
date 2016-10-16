@@ -226,29 +226,19 @@ namespace NetworkSkins.Data
 
         private void SerializeSegmentData()
         {
-            var saveRequired = CleanupData();
+            CleanupData();
 
-            // check if data must be saved
-            if (saveRequired)
+            byte[] data;
+
+            using (var stream = new MemoryStream())
             {
-                byte[] data;
-
-                using (var stream = new MemoryStream())
-                {
-                    DataSerializer.SerializeArray(stream, DataSerializer.Mode.Memory, DataVersion, SegmentToSegmentDataMap);
-                    data = stream.ToArray();
-                }
-
-                serializableDataManager.SaveData(SegmentDataId, data);
-
-                Debug.LogFormat("Network Skins: Segment Data Saved (Data length: {0})", data.Length);
+                DataSerializer.SerializeArray(stream, DataSerializer.Mode.Memory, DataVersion, SegmentToSegmentDataMap);
+                data = stream.ToArray();
             }
-            else
-            {
-                serializableDataManager.EraseData(SegmentDataId);
 
-                Debug.Log("Network Skins: Segment Data Cleared!");
-            }
+            serializableDataManager.SaveData(SegmentDataId, data);
+
+            Debug.LogFormat("Network Skins: Segment Data Saved (Data length: {0})", data.Length);
         }
 
         private void SerializeActiveOptions()
@@ -365,47 +355,40 @@ namespace NetworkSkins.Data
         /// <summary>
         /// Validates the data. Removes data which is no longer used (should never happen).
         /// </summary>
-        /// <returns>If there is data applied to any segment</returns>
-        private bool CleanupData()
+        private void CleanupData()
         {
-            var result = false;
-
-            if(_usedSegmentData != null)
-            foreach (var segmentData in _usedSegmentData.ToArray())
-            {
-                var segmentMapUsedCount = SegmentToSegmentDataMap.Count(segmentData.Equals);
-                var segmentOptionsUsedCount = _selectedSegmentOptions.Values.Count(segmentData.Equals);
-                var assetOptionsUsedCount = _assetSegmentOptions.Values.Count(segmentData.Equals);
-                var calculatedUsedCount = segmentMapUsedCount + segmentOptionsUsedCount + assetOptionsUsedCount;
-
-                if (segmentMapUsedCount > 0) result = true;
-
-                if (segmentData.UsedCount != calculatedUsedCount)
+            if (_usedSegmentData != null)
+                foreach (var segmentData in _usedSegmentData.ToArray())
                 {
-                    Debug.LogErrorFormat("Network Skins: Incorrect usedCount detected, should be {0} ({1})", calculatedUsedCount, segmentData);
+                    var segmentMapUsedCount = SegmentToSegmentDataMap.Count(segmentData.Equals);
+                    var segmentOptionsUsedCount = _selectedSegmentOptions.Values.Count(segmentData.Equals);
+                    var assetOptionsUsedCount = _assetSegmentOptions.Values.Count(segmentData.Equals);
+                    var calculatedUsedCount = segmentMapUsedCount + segmentOptionsUsedCount + assetOptionsUsedCount;
 
-                    segmentData.UsedCount = calculatedUsedCount;
-                    DeleteIfNotInUse(segmentData);
+                    if (segmentData.UsedCount != calculatedUsedCount)
+                    {
+                        Debug.LogErrorFormat("Network Skins: Incorrect usedCount detected, should be {0} ({1})", calculatedUsedCount, segmentData);
+
+                        segmentData.UsedCount = calculatedUsedCount;
+                        DeleteIfNotInUse(segmentData);
+                    }
                 }
-            }
 
             // check if data is applied to segments which no longer exist
-            if(SegmentToSegmentDataMap != null)
-            for (var i = 0; i <SegmentToSegmentDataMap.Length; i++)
-            {
-                var segmentData = SegmentToSegmentDataMap[i];
-
-                if (segmentData != null && NetManager.instance.m_segments.m_buffer[i].m_flags == NetSegment.Flags.None)
+            if (SegmentToSegmentDataMap != null)
+                for (var i = 0; i < SegmentToSegmentDataMap.Length; i++)
                 {
-                    Debug.LogErrorFormat("Network Skins: Data was applied to released segment {0}", segmentData);
+                    var segmentData = SegmentToSegmentDataMap[i];
 
-                    SegmentToSegmentDataMap[i] = null;
-                    segmentData.UsedCount--;
-                    DeleteIfNotInUse(segmentData);
+                    if (segmentData != null && NetManager.instance.m_segments.m_buffer[i].m_flags == NetSegment.Flags.None)
+                    {
+                        Debug.LogErrorFormat("Network Skins: Data was applied to released segment {0}", segmentData);
+
+                        SegmentToSegmentDataMap[i] = null;
+                        segmentData.UsedCount--;
+                        DeleteIfNotInUse(segmentData);
+                    }
                 }
-            }
-
-            return result;
         }
 
         private void DeleteIfNotInUse(SegmentData segmentData)
