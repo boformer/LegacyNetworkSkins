@@ -201,15 +201,17 @@ namespace NetworkSkins.UI
                 var visibleTabCount = 0;
                 var firstVisibleIndex = -1;
 
+                var requiredHeight = 0;
+
                 // Populate tabs and options
-                for (var i = 0; i < _subPrefabs.Length; i++) 
+                for (var i = 0; i < _subPrefabs.Length; i++)
                 {
                     var tabName = NetUtil.NET_TYPE_NAMES[i];
-                    
+
                     if (_subPrefabs[i] != null)
                     {
                         if (firstVisibleIndex < 0) firstVisibleIndex = i;
-                        
+
                         var visibleOptionCount = 0;
 
                         foreach (var component in _netTypePages[i].components)
@@ -224,6 +226,7 @@ namespace NetworkSkins.UI
                         if (visibleOptionCount > 0)
                         {
                             visibleTabCount++;
+                            requiredHeight = Math.Max(requiredHeight, visibleOptionCount * (30 + Padding));
                             _tabstrip.ShowTab(tabName);
                         }
                         else
@@ -255,6 +258,10 @@ namespace NetworkSkins.UI
                 }
 
                 isVisible = visibleTabCount > 0;
+
+                _tabstrip.tabPages.height = requiredHeight + 2 * PagesPadding;
+                this.FitChildren();
+
                 return;
             }
 
