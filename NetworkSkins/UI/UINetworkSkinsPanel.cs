@@ -151,7 +151,7 @@ namespace NetworkSkins.UI
             {
                 if (SpriteUtilities.GetAtlas(Atlas) != null) return;
 
-                var atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.GetModPath(), "sprites.png"), Atlas);
+                var atlasSuccess = SpriteUtilities.InitialiseAtlas(Path.Combine(NetworkSkinsMod.AssemblyPath, "sprites.png"), Atlas);
 
                 if (atlasSuccess)
                 {
