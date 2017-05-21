@@ -42,6 +42,9 @@ namespace NetworkSkins.Net
         // Support for FineRoadHeights and Vanilla NetTool
         public static INetToolWrapper GenerateNetToolWrapper()
         {
+            return new NetToolWrapperVanilla();
+
+            /*
             if (!FineRoadHeightsEnabled)
             {
                 Debug.Log("Network Skins: FineRoadHeights not detected!");
@@ -52,8 +55,10 @@ namespace NetworkSkins.Net
                 Debug.Log("Network Skins: FineRoadHeights detected!");
                 return new NetToolWrapperFineRoadHeights();
             }
+            */
         }
 
+        /*
         private static bool FineRoadHeightsEnabled
         {
             get
@@ -61,5 +66,6 @@ namespace NetworkSkins.Net
                 return PluginManager.instance.GetPluginsInfo().Any(mod => (mod.publishedFileID.AsUInt64 == 413678178uL || mod.name.Contains("FineRoadHeights")) && mod.isEnabled);
             }
         }
+        */
     }
 }
