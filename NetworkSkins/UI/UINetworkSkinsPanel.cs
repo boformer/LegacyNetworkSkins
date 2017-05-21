@@ -69,7 +69,7 @@ namespace NetworkSkins.UI
             _tabstrip.padding.right = 0;
 
             // Add 4 tabs and 4 pages
-            var keyMappingTabstrip = GameObject.Find("KeyMappingTabStrip").GetComponent<UITabstrip>();
+            var keyMappingTabstrip = GameObject.Find("EconomyTabstrip").GetComponent<UITabstrip>();
             var buttonTemplate = keyMappingTabstrip.GetComponentInChildren<UIButton>();
 
             _netTypePages = new UIPanel[NetUtil.NET_TYPE_NAMES.Length];
@@ -102,7 +102,6 @@ namespace NetworkSkins.UI
             }
             
             this.FitChildren();
-
 
             _netToolWrapper = NetUtil.GenerateNetToolWrapper();
             if (_netToolWrapper == null) throw new Exception("NetworkSkins Error: NetToolWrapper is null!");

@@ -101,7 +101,7 @@ namespace NetworkSkins.Props
             var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
                 var flag2 = flag != invert;
                 var num = laneProps.m_props.Length;
 
@@ -324,7 +324,7 @@ namespace NetworkSkins.Props
             var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
                 var flag2 = flag != invert;
                 if (flag)
                 {
@@ -566,25 +566,14 @@ namespace NetworkSkins.Props
         /// <summary>
         /// Called when road segment is placed/released.
         /// </summary>
-        /// <param name="laneID"></param>
-        /// <param name="laneInfo"></param>
-        /// <param name="startFlags"></param>
-        /// <param name="endFlags"></param>
-        /// <param name="invert"></param>
-        /// <param name="layer"></param>
-        /// <param name="vertexCount"></param>
-        /// <param name="triangleCount"></param>
-        /// <param name="objectCount"></param>
-        /// <param name="vertexArrays"></param>
-        /// <param name="hasProps"></param>
         /// <returns></returns>
-        public bool CalculateGroupData(uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, bool invert, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays, ref bool hasProps)
+        public bool CalculateGroupData(uint laneID, NetInfo.Lane laneInfo, bool destroyed, NetNode.Flags startFlags, NetNode.Flags endFlags, bool invert, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays, ref bool hasProps)
         {
             var result = false;
             var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
                 if (flag)
                 {
                     var flags = startFlags;
@@ -690,7 +679,7 @@ namespace NetworkSkins.Props
                                             var variation = finalProp.GetVariation(ref randomizer);
                                             randomizer.Int32(10000u);
                                             variation.GetColor(ref randomizer);
-                                            if (PropInstance.CalculateGroupData(variation, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays))
+                                            if ((variation.m_isDecal || !destroyed) && PropInstance.CalculateGroupData(variation, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays))
                                             {
                                                 result = true;
                                             }
@@ -699,22 +688,25 @@ namespace NetworkSkins.Props
                                 }
                             }
 
-                            if (finalTree != null)
+                            if (!destroyed)
                             {
-                                hasProps = true;
-                                if (finalTree.m_prefabDataLayer == layer)
+                                if (finalTree != null)
                                 {
-                                    var randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                    for (var k = 1; k <= num2; k += 2)
+                                    hasProps = true;
+                                    if (finalTree.m_prefabDataLayer == layer)
                                     {
-                                        if (randomizer2.Int32(100u) < prop.m_probability)
+                                        Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                        for (int k = 1; k <= num2; k += 2)
                                         {
-                                            finalTree.GetVariation(ref randomizer2);
-                                            randomizer2.Int32(10000u);
-                                            randomizer2.Int32(10000u);
-                                            if (global::TreeInstance.CalculateGroupData(ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays))
+                                            if (randomizer2.Int32(100u) < prop.m_probability)
                                             {
-                                                result = true;
+                                                finalTree.GetVariation(ref randomizer2);
+                                                randomizer2.Int32(10000u);
+                                                randomizer2.Int32(10000u);
+                                                if (global::TreeInstance.CalculateGroupData(ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays))
+                                                {
+                                                    result = true;
+                                                }
                                             }
                                         }
                                     }
@@ -730,31 +722,12 @@ namespace NetworkSkins.Props
         /// <summary>
         /// Called when road segment is placed/released.
         /// </summary>
-        /// <param name="segmentID"></param>
-        /// <param name="laneID"></param>
-        /// <param name="laneInfo"></param>
-        /// <param name="startFlags"></param>
-        /// <param name="endFlags"></param>
-        /// <param name="startAngle"></param>
-        /// <param name="endAngle"></param>
-        /// <param name="invert"></param>
-        /// <param name="terrainHeight"></param>
-        /// <param name="layer"></param>
-        /// <param name="vertexIndex"></param>
-        /// <param name="triangleIndex"></param>
-        /// <param name="groupPosition"></param>
-        /// <param name="data"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <param name="maxRenderDistance"></param>
-        /// <param name="maxInstanceDistance"></param>
-        /// <param name="hasProps"></param>
-        public void PopulateGroupData(ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, float startAngle, float endAngle, bool invert, bool terrainHeight, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool hasProps)
+        public void PopulateGroupData(ushort segmentID, uint laneID, NetInfo.Lane laneInfo, bool destroyed, NetNode.Flags startFlags, NetNode.Flags endFlags, float startAngle, float endAngle, bool invert, bool terrainHeight, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance, ref bool hasProps)
         {
             var laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Avoid) == 11;
+                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
                 var flag2 = flag != invert;
                 if (flag)
                 {
@@ -864,112 +837,117 @@ namespace NetworkSkins.Props
                                 hasProps = true;
                                 if (finalProp.m_prefabDataLayer == layer || finalProp.m_effectLayer == layer)
                                 {
-                                    var color = Color.white;
-                                    var randomizer = new Randomizer((int)(laneID + (uint)i));
-                                    for (var j = 1; j <= num2; j += 2)
+                                    Color color = Color.white;
+                                    Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
+                                    for (int j = 1; j <= num2; j += 2)
                                     {
                                         if (randomizer.Int32(100u) < prop.m_probability)
                                         {
-                                            var num4 = num3 + (float)j / (float)num2;
-                                            var variation = finalProp.GetVariation(ref randomizer);
-                                            var scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
+                                            float num4 = num3 + (float)j / (float)num2;
+                                            PropInfo variation = finalProp.GetVariation(ref randomizer);
+                                            float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                             if (prop.m_colorMode == NetLaneProps.ColorMode.Default)
                                             {
                                                 color = variation.GetColor(ref randomizer);
                                             }
-                                            var vector = _this.m_bezier.Position(num4);
-                                            if (terrainHeight)
+                                            if (variation.m_isDecal || !destroyed)
                                             {
-                                                vector.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector);
-                                            }
-                                            vector.y += prop.m_position.y;
-                                            var vector2 = _this.m_bezier.Tangent(num4);
-                                            if (vector2 != Vector3.zero)
-                                            {
-                                                if (flag2)
+                                                Vector3 vector = _this.m_bezier.Position(num4);
+                                                if (terrainHeight)
                                                 {
-                                                    vector2 = -vector2;
+                                                    vector.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector);
                                                 }
-                                                vector2.y = 0f;
-                                                if (prop.m_position.x != 0f)
+                                                vector.y += prop.m_position.y;
+                                                Vector3 vector2 = _this.m_bezier.Tangent(num4);
+                                                if (vector2 != Vector3.zero)
                                                 {
-                                                    vector2 = Vector3.Normalize(vector2);
-                                                    vector.x += vector2.z * prop.m_position.x;
-                                                    vector.z -= vector2.x * prop.m_position.x;
+                                                    if (flag2)
+                                                    {
+                                                        vector2 = -vector2;
+                                                    }
+                                                    vector2.y = 0f;
+                                                    if (prop.m_position.x != 0f)
+                                                    {
+                                                        vector2 = Vector3.Normalize(vector2);
+                                                        vector.x += vector2.z * prop.m_position.x;
+                                                        vector.z -= vector2.x * prop.m_position.x;
+                                                    }
+                                                    float num5 = Mathf.Atan2(vector2.x, -vector2.z);
+                                                    if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
+                                                    {
+                                                        float num6 = endAngle - startAngle;
+                                                        if (num6 > 3.14159274f)
+                                                        {
+                                                            num6 -= 6.28318548f;
+                                                        }
+                                                        if (num6 < -3.14159274f)
+                                                        {
+                                                            num6 += 6.28318548f;
+                                                        }
+                                                        float num7 = startAngle + num6 * num4;
+                                                        num6 = num7 - num5;
+                                                        if (num6 > 3.14159274f)
+                                                        {
+                                                            num6 -= 6.28318548f;
+                                                        }
+                                                        if (num6 < -3.14159274f)
+                                                        {
+                                                            num6 += 6.28318548f;
+                                                        }
+                                                        num5 += num6 * prop.m_cornerAngle;
+                                                        if (num6 != 0f && prop.m_position.x != 0f)
+                                                        {
+                                                            float num8 = Mathf.Tan(num6);
+                                                            vector.x += vector2.x * num8 * prop.m_position.x;
+                                                            vector.z += vector2.z * num8 * prop.m_position.x;
+                                                        }
+                                                    }
+                                                    InstanceID id = default(InstanceID);
+                                                    id.NetSegment = segmentID;
+                                                    num5 += prop.m_angle * 0.0174532924f;
+                                                    PropInstance.PopulateGroupData(variation, layer, id, vector, scale, num5, color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                                 }
-                                                var num5 = Mathf.Atan2(vector2.x, -vector2.z);
-                                                if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
-                                                {
-                                                    var num6 = endAngle - startAngle;
-                                                    if (num6 > 3.14159274f)
-                                                    {
-                                                        num6 -= 6.28318548f;
-                                                    }
-                                                    if (num6 < -3.14159274f)
-                                                    {
-                                                        num6 += 6.28318548f;
-                                                    }
-                                                    var num7 = startAngle + num6 * num4;
-                                                    num6 = num7 - num5;
-                                                    if (num6 > 3.14159274f)
-                                                    {
-                                                        num6 -= 6.28318548f;
-                                                    }
-                                                    if (num6 < -3.14159274f)
-                                                    {
-                                                        num6 += 6.28318548f;
-                                                    }
-                                                    num5 += num6 * prop.m_cornerAngle;
-                                                    if (num6 != 0f && prop.m_position.x != 0f)
-                                                    {
-                                                        var num8 = Mathf.Tan(num6);
-                                                        vector.x += vector2.x * num8 * prop.m_position.x;
-                                                        vector.z += vector2.z * num8 * prop.m_position.x;
-                                                    }
-                                                }
-                                                var id = default(InstanceID);
-                                                id.NetSegment = segmentID;
-                                                num5 += prop_m_angle * 0.0174532924f;
-                                                PropInstance.PopulateGroupData(variation, layer, id, vector, scale, num5, color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                             }
                                         }
                                     }
                                 }
                             }
-
-                            if (finalTree != null)
+                            if (!destroyed)
                             {
-                                hasProps = true;
-                                if (finalTree.m_prefabDataLayer == layer)
+                                if (finalTree != null)
                                 {
-                                    var randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                    for (var k = 1; k <= num2; k += 2)
+                                    hasProps = true;
+                                    if (finalTree.m_prefabDataLayer == layer)
                                     {
-                                        if (randomizer2.Int32(100u) < prop.m_probability)
+                                        Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                        for (int k = 1; k <= num2; k += 2)
                                         {
-                                            var t = num3 + (float)k / (float)num2;
-                                            var variation2 = finalTree.GetVariation(ref randomizer2);
-                                            var scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
-                                            var brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
-                                            var vector3 = _this.m_bezier.Position(t);
-                                            if (terrainHeight)
+                                            if (randomizer2.Int32(100u) < prop.m_probability)
                                             {
-                                                vector3.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector3);
-                                            }
-                                            vector3.y += prop.m_position.y;
-                                            if (prop.m_position.x != 0f)
-                                            {
-                                                var vector4 = _this.m_bezier.Tangent(t);
-                                                if (flag2)
+                                                float t = num3 + (float)k / (float)num2;
+                                                TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
+                                                float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
+                                                float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
+                                                Vector3 vector3 = _this.m_bezier.Position(t);
+                                                if (terrainHeight)
                                                 {
-                                                    vector4 = -vector4;
+                                                    vector3.y = Singleton<TerrainManager>.instance.SampleDetailHeight(vector3);
                                                 }
-                                                vector4.y = 0f;
-                                                vector4 = Vector3.Normalize(vector4);
-                                                vector3.x += vector4.z * prop.m_position.x;
-                                                vector3.z -= vector4.x * prop.m_position.x;
+                                                vector3.y += prop.m_position.y;
+                                                if (prop.m_position.x != 0f)
+                                                {
+                                                    Vector3 vector4 = _this.m_bezier.Tangent(t);
+                                                    if (flag2)
+                                                    {
+                                                        vector4 = -vector4;
+                                                    }
+                                                    vector4.y = 0f;
+                                                    vector4 = Vector3.Normalize(vector4);
+                                                    vector3.x += vector4.z * prop.m_position.x;
+                                                    vector3.z -= vector4.x * prop.m_position.x;
+                                                }
+                                                global::TreeInstance.PopulateGroupData(variation2, vector3, scale2, brightness, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                             }
-                                            global::TreeInstance.PopulateGroupData(variation2, vector3, scale2, brightness, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                         }
                                     }
                                 }
