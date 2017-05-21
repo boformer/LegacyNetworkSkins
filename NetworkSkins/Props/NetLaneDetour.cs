@@ -319,20 +319,29 @@ namespace NetworkSkins.Props
         /// <param name="objectIndex2"></param>
         /// <param name="data"></param>
         /// <param name="propIndex"></param>
+        /// 
+        /// 
+        // NetLane
         public void RenderInstance(RenderManager.CameraInfo cameraInfo, ushort segmentID, uint laneID, NetInfo.Lane laneInfo, NetNode.Flags startFlags, NetNode.Flags endFlags, Color startColor, Color endColor, float startAngle, float endAngle, bool invert, int layerMask, Vector4 objectIndex1, Vector4 objectIndex2, ref RenderManager.Instance data, ref int propIndex)
-        { 
-            var laneProps = laneInfo.m_laneProps;
+        {
+            NetLaneProps laneProps = laneInfo.m_laneProps;
             if (laneProps != null && laneProps.m_props != null)
             {
-                var flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
-                var flag2 = flag != invert;
+                bool flag = (byte)(laneInfo.m_finalDirection & NetInfo.Direction.Both) == 2 || (byte)(laneInfo.m_finalDirection & NetInfo.Direction.AvoidBoth) == 11;
+                bool flag2 = flag != invert;
                 if (flag)
                 {
-                    var flags = startFlags;
+                    NetNode.Flags flags = startFlags;
                     startFlags = endFlags;
                     endFlags = flags;
                 }
-                var num = laneProps.m_props.Length;
+                Texture texture = null;
+                Vector4 zero = Vector4.zero;
+                Vector4 zero2 = Vector4.zero;
+                Texture texture2 = null;
+                Vector4 zero3 = Vector4.zero;
+                Vector4 zero4 = Vector4.zero;
+                int num = laneProps.m_props.Length;
 
                 // mod begin
                 var _this = NetManager.instance.m_lanes.m_buffer[laneID];
@@ -340,9 +349,9 @@ namespace NetworkSkins.Props
                 var segmentData = SegmentDataManager.Instance.SegmentToSegmentDataMap?[_this.m_segment];
                 // mod end
 
-                for (var i = 0; i < num; i++)
+                for (int i = 0; i < num; i++)
                 {
-                    var prop = laneProps.m_props[i];
+                    NetLaneProps.Prop prop = laneProps.m_props[i];
                     if (_this.m_length >= prop.m_minLength)
                     {
                         // mod begin
@@ -412,19 +421,19 @@ namespace NetworkSkins.Props
                         }
                         // mod end
 
-                        var num2 = 2;
+                        int num2 = 2;
                         if (repeatDistance > 1f)
                         {
                             num2 *= Mathf.Max(1, Mathf.RoundToInt(_this.m_length / repeatDistance));
                         }
-                        var num3 = propIndex;
+                        int num3 = propIndex;
                         if (propIndex != -1)
                         {
                             propIndex = num3 + (num2 + 1 >> 1);
                         }
                         if (prop.CheckFlags((NetLane.Flags)_this.m_flags, startFlags, endFlags))
                         {
-                            var num4 = prop.m_segmentOffset * 0.5f;
+                            float num4 = prop.m_segmentOffset * 0.5f;
                             if (_this.m_length != 0f)
                             {
                                 num4 = Mathf.Clamp(num4 + prop.m_position.z / _this.m_length, -0.5f, 0.5f);
@@ -433,23 +442,23 @@ namespace NetworkSkins.Props
                             {
                                 num4 = -num4;
                             }
-
+   
                             if (finalProp != null && (layerMask & 1 << finalProp.m_prefabDataLayer) != 0)
                             {
-                                var color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
-                                var randomizer = new Randomizer((int)(laneID + (uint)i));
-                                for (var j = 1; j <= num2; j += 2)
+                                Color color = (prop.m_colorMode != NetLaneProps.ColorMode.EndState) ? startColor : endColor;
+                                Randomizer randomizer = new Randomizer((int)(laneID + (uint)i));
+                                for (int j = 1; j <= num2; j += 2)
                                 {
                                     if (randomizer.Int32(100u) < prop.m_probability)
                                     {
-                                        var num5 = num4 + (float)j / (float)num2;
-                                        var variation = finalProp.GetVariation(ref randomizer);
-                                        var scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
+                                        float num5 = num4 + (float)j / (float)num2;
+                                        PropInfo variation = finalProp.GetVariation(ref randomizer);
+                                        float scale = variation.m_minScale + (float)randomizer.Int32(10000u) * (variation.m_maxScale - variation.m_minScale) * 0.0001f;
                                         if (prop.m_colorMode == NetLaneProps.ColorMode.Default)
                                         {
                                             color = variation.GetColor(ref randomizer);
                                         }
-                                        var vector = _this.m_bezier.Position(num5);
+                                        Vector3 vector = _this.m_bezier.Position(num5);
                                         if (propIndex != -1)
                                         {
                                             vector.y = (float)data.m_extraData.GetUShort(num3++) * 0.015625f;
@@ -457,7 +466,7 @@ namespace NetworkSkins.Props
                                         vector.y += prop.m_position.y;
                                         if (cameraInfo.CheckRenderDistance(vector, variation.m_maxRenderDistance))
                                         {
-                                            var vector2 = _this.m_bezier.Tangent(num5);
+                                            Vector3 vector2 = _this.m_bezier.Tangent(num5);
                                             if (vector2 != Vector3.zero)
                                             {
                                                 if (flag2)
@@ -471,10 +480,10 @@ namespace NetworkSkins.Props
                                                     vector.x += vector2.z * prop.m_position.x;
                                                     vector.z -= vector2.x * prop.m_position.x;
                                                 }
-                                                var num6 = Mathf.Atan2(vector2.x, -vector2.z);
+                                                float num6 = Mathf.Atan2(vector2.x, -vector2.z);
                                                 if (prop.m_cornerAngle != 0f || prop.m_position.x != 0f)
                                                 {
-                                                    var num7 = endAngle - startAngle;
+                                                    float num7 = endAngle - startAngle;
                                                     if (num7 > 3.14159274f)
                                                     {
                                                         num7 -= 6.28318548f;
@@ -483,7 +492,7 @@ namespace NetworkSkins.Props
                                                     {
                                                         num7 += 6.28318548f;
                                                     }
-                                                    var num8 = startAngle + num7 * num5;
+                                                    float num8 = startAngle + num7 * num5;
                                                     num7 = num8 - num6;
                                                     if (num7 > 3.14159274f)
                                                     {
@@ -496,45 +505,48 @@ namespace NetworkSkins.Props
                                                     num6 += num7 * prop.m_cornerAngle;
                                                     if (num7 != 0f && prop.m_position.x != 0f)
                                                     {
-                                                        var num9 = Mathf.Tan(num7);
+                                                        float num9 = Mathf.Tan(num7);
                                                         vector.x += vector2.x * num9 * prop.m_position.x;
                                                         vector.z += vector2.z * num9 * prop.m_position.x;
                                                     }
                                                 }
                                                 Vector4 objectIndex3 = (num5 <= 0.5f) ? objectIndex1 : objectIndex2;
                                                 num6 += prop_m_angle * 0.0174532924f;
-
-                                                PropInstance.RenderInstance(cameraInfo, variation, new InstanceID
+                                                InstanceID id = default(InstanceID);
+                                                id.NetSegment = segmentID;
+                                                if (variation.m_requireWaterMap)
                                                 {
-                                                    NetSegment = segmentID
-                                                }, vector, scale, num6, color, objectIndex3, true);
-                                                /*
-                                                catch // debug code
+                                                    if (texture == null)
+                                                    {
+                                                        Singleton<TerrainManager>.instance.GetHeightMapping(Singleton<NetManager>.instance.m_segments.m_buffer[(int)segmentID].m_middlePosition, out texture, out zero, out zero2);
+                                                    }
+                                                    if (texture2 == null)
+                                                    {
+                                                        Singleton<TerrainManager>.instance.GetWaterMapping(Singleton<NetManager>.instance.m_segments.m_buffer[(int)segmentID].m_middlePosition, out texture2, out zero3, out zero4);
+                                                    }
+                                                    PropInstance.RenderInstance(cameraInfo, variation, id, vector, scale, num6, color, objectIndex3, true, texture, zero, zero2, texture2, zero3, zero4);
+                                                }
+                                                else if (!variation.m_requireHeightMap)
                                                 {
-                                                    throw new Exception($"DEBUG: Prop Rendering Error\n" +
-                                                              $"Net Name: {NetManager.instance.m_segments.m_buffer[segmentID].Info?.name}\n" +
-                                                              $"Prop Name: {finalProp?.name}\n" +
-                                                              $"Variation Name: {variation?.name}\n" +
-                                                              $"Camera exists? {cameraInfo != null}");
-                                                }*/
+                                                    PropInstance.RenderInstance(cameraInfo, variation, id, vector, scale, num6, color, objectIndex3, true);
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-
                             if (finalTree != null && (layerMask & 1 << finalTree.m_prefabDataLayer) != 0)
                             {
-                                var randomizer2 = new Randomizer((int)(laneID + (uint)i));
-                                for (var k = 1; k <= num2; k += 2)
+                                Randomizer randomizer2 = new Randomizer((int)(laneID + (uint)i));
+                                for (int k = 1; k <= num2; k += 2)
                                 {
                                     if (randomizer2.Int32(100u) < prop.m_probability)
                                     {
-                                        var t = num4 + (float)k / (float)num2;
-                                        var variation2 = finalTree.GetVariation(ref randomizer2);
-                                        var scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
-                                        var brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
-                                        var position = _this.m_bezier.Position(t);
+                                        float t = num4 + (float)k / (float)num2;
+                                        TreeInfo variation2 = finalTree.GetVariation(ref randomizer2);
+                                        float scale2 = variation2.m_minScale + (float)randomizer2.Int32(10000u) * (variation2.m_maxScale - variation2.m_minScale) * 0.0001f;
+                                        float brightness = variation2.m_minBrightness + (float)randomizer2.Int32(10000u) * (variation2.m_maxBrightness - variation2.m_minBrightness) * 0.0001f;
+                                        Vector3 position = _this.m_bezier.Position(t);
                                         if (propIndex != -1)
                                         {
                                             position.y = (float)data.m_extraData.GetUShort(num3++) * 0.015625f;
@@ -542,7 +554,7 @@ namespace NetworkSkins.Props
                                         position.y += prop.m_position.y;
                                         if (prop.m_position.x != 0f)
                                         {
-                                            var vector3 = _this.m_bezier.Tangent(t);
+                                            Vector3 vector3 = _this.m_bezier.Tangent(t);
                                             if (flag2)
                                             {
                                                 vector3 = -vector3;
@@ -561,6 +573,7 @@ namespace NetworkSkins.Props
                 }
             }
         }
+        
 
 
         /// <summary>
