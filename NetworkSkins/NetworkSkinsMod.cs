@@ -84,7 +84,7 @@ namespace NetworkSkins
 
         public static bool CheckLoadMode(LoadMode mode) 
         {
-            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.LoadMap || mode == LoadMode.NewMap;
+            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.LoadMap || mode == LoadMode.NewMap || mode == LoadMode.NewGameFromScenario;
         }
     }
 }
