@@ -36,8 +36,7 @@ namespace NetworkSkins.Props
 
                 foreach (var tree in _availableTrees)
                 {
-                    var itemName = UIUtil.GenerateBeautifiedPrefabName(tree);
-                    itemName = BeautifyNameEvenMore(itemName);
+                    var itemName = GenerateBeautifiedPrefabName(tree);
                     if (tree == defaultTree) itemName += " (Default)";
                     DropDown.AddItem(itemName);
 
@@ -62,9 +61,11 @@ namespace NetworkSkins.Props
             return false;
         }
 
-        private string BeautifyNameEvenMore(string itemName) 
+        public static string GenerateBeautifiedPrefabName(TreeInfo tree)
         {
-            switch(itemName)                   
+	        var itemName = UIUtil.GenerateBeautifiedPrefabName(tree);
+
+			switch (itemName)                   
             {
                 case "Cherry Tree01": return "Cherry Tree";
                 case "Tree with Leaves": return "Small Oak";

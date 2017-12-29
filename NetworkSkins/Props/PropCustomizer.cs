@@ -14,8 +14,8 @@ namespace NetworkSkins.Props
     {
         public static PropCustomizer Instance;
 
-        private readonly List<TreeInfo> _availableTrees = new List<TreeInfo>();
-        private readonly List<PropInfo> _availableStreetLights = new List<PropInfo>();
+        private List<TreeInfo> _availableTrees = new List<TreeInfo>();
+        private List<PropInfo> _availableStreetLights = new List<PropInfo>();
 
         public int[] StreetLightPrefabDataIndices;
 
@@ -39,9 +39,6 @@ namespace NetworkSkins.Props
                 && mode != SimulationManager.UpdateMode.LoadGame && mode != SimulationManager.UpdateMode.NewGameFromMap
                 && mode != SimulationManager.UpdateMode.NewGameFromScenario) return;
 
-            // no trees
-            _availableTrees.Add(null);
-
             for (uint i = 0; i < PrefabCollection<TreeInfo>.LoadedCount(); i++) 
             {
                 var prefab = PrefabCollection<TreeInfo>.GetLoaded(i);
@@ -51,8 +48,8 @@ namespace NetworkSkins.Props
                 _availableTrees.Add(prefab);
             }
 
-            // no street lights
-            _availableStreetLights.Add(null);
+	        _availableTrees = _availableTrees.OrderBy(prefab => UITreeOption.GenerateBeautifiedPrefabName(prefab).ToLowerInvariant().Replace("the ", "")).ToList();
+			_availableTrees.Insert(0, null);
 
             for (uint i = 0; i < PrefabCollection<PropInfo>.LoadedCount(); i++)
             {
@@ -75,6 +72,9 @@ namespace NetworkSkins.Props
                     }
                 }
             }
+
+	        _availableStreetLights = _availableStreetLights.OrderBy(prefab => prefab?.GetUncheckedLocalizedTitle().Trim().ToLowerInvariant().Replace("the ", "")).ToList();
+			_availableStreetLights.Insert(0, null);
 
             // compile list of data indices for fast check if a prefab is a street light:
             StreetLightPrefabDataIndices = _availableStreetLights.Where(prop => prop != null).Select(prop => prop.m_prefabDataIndex).ToArray();
