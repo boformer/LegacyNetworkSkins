@@ -61,12 +61,12 @@ namespace NetworkSkins.Props
                 if (prefab == null) continue;
                 if (prefab.m_class.m_service == ItemClass.Service.Road || 
                     prefab.m_class.m_subService == ItemClass.SubService.PublicTransportPlane || 
-                    prefab.name.Contains("StreetLamp"))
+                    prefab.name.ToLower().Contains("streetlamp") || prefab.name.ToLower().Contains("streetlight") || prefab.name.ToLower().Contains("lantern"))
                 {
                     if (prefab.m_effects != null && prefab.m_effects.Length > 0) 
                     {
-                        if (prefab.name.Contains("Taxiway")) continue;
-                        if (prefab.name.Contains("Runway")) continue;
+                        if (prefab.name.ToLower().Contains("taxiway")) continue;
+                        if (prefab.name.ToLower().Contains("runway")) continue;
                         
                         if (prefab.m_effects.Where(effect => effect.m_effect != null).Any(effect => effect.m_effect is LightEffect))
                         {

@@ -564,7 +564,7 @@ namespace NetworkSkins.Props
                                             position.x += vector3.z * prop.m_position.x;
                                             position.z -= vector3.x * prop.m_position.x;
                                         }
-                                        global::TreeInstance.RenderInstance(cameraInfo, variation2, position, scale2, brightness);
+                                        global::TreeInstance.RenderInstance(cameraInfo, variation2, position, scale2, brightness, RenderManager.DefaultColorLocation);
                                     }
                                 }
                             }
@@ -959,7 +959,7 @@ namespace NetworkSkins.Props
                                                     vector3.x += vector4.z * prop.m_position.x;
                                                     vector3.z -= vector4.x * prop.m_position.x;
                                                 }
-                                                global::TreeInstance.PopulateGroupData(variation2, vector3, scale2, brightness, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                                                global::TreeInstance.PopulateGroupData(variation2, vector3, scale2, brightness, RenderManager.DefaultColorLocation, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                                             }
                                         }
                                     }

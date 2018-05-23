@@ -36,6 +36,14 @@ namespace NetworkSkins.Net
                 subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
                 subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
             }
+            else if (prefab.m_netAI is PedestrianWayAI)
+            {
+                var netAI = (PedestrianWayAI)prefab.m_netAI;
+                subPrefabs[(int)NetType.Tunnel] = netAI.m_tunnelInfo;
+                subPrefabs[(int)NetType.Ground] = netAI.m_info;
+                subPrefabs[(int)NetType.Elevated] = netAI.m_elevatedInfo;
+                subPrefabs[(int)NetType.Bridge] = netAI.m_bridgeInfo;
+            }
             return subPrefabs;
         }
 
