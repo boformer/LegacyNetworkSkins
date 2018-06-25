@@ -71,12 +71,29 @@ namespace NetworkSkins.Net
 
             var caller = new System.Diagnostics.StackFrame(1).GetMethod().Name;
             //Debug.Log("CreateSegment (" + info.name + ") called by " + caller);
+            var caller2 = new System.Diagnostics.StackFrame(2).GetMethod().Name;
 
             switch (caller)
             {
+                case "CreateSegmentOriginal":
+                    if (caller2 == "CreateSegment")
+                    {
+                        var caller3Type = new System.Diagnostics.StackFrame(3).GetMethod().DeclaringType?.Name;
+                        if (caller3Type != null && caller3Type.StartsWith("NetTool", StringComparison.Ordinal))
+                        {
+                            if (success) EventSegmentCreate?.Invoke(segment);
+                            if (MoveMiddleNode_releasedSegment > 0) EventSegmentRelease?.Invoke(MoveMiddleNode_releasedSegment);
+                            if (SplitSegment_releasedSegment > 0) EventSegmentRelease?.Invoke(SplitSegment_releasedSegment);
+
+                            SplitSegment_releasedSegment = 0;
+                            MoveMiddleNode_releasedSegment = 0;
+                        }
+                    }
+                    break;
+
                 case "CreateNode":
 
-                    var caller2 = new System.Diagnostics.StackFrame(2).GetMethod().Name;
+                    //var caller2 = new System.Diagnostics.StackFrame(2).GetMethod().Name;
                     //Debug.Log("... called by " + caller2);
 
                     if (caller2 == "CreateNode") // check that caller was called by NetTool
