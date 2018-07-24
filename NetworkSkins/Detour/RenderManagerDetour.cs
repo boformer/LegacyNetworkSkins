@@ -11,6 +11,11 @@ using UnityEngine;
 
 namespace NetworkSkins.Detour
 {
+    /// <summary>
+    /// RenderManager is detoured to provide a special loading hook
+    /// that is executed before LODs and other render information is cached.
+    /// We use it to initialize NetworkSkins, instead of onLevelLoaded
+    /// </summary>
     public class RenderManagerDetour : RenderManager
     {
         private static bool deployed;

@@ -10,6 +10,21 @@ using UnityEngine;
 
 namespace NetworkSkins.Data
 {
+    /// <summary>
+    /// This is the data storage and manager for per-segment data
+    /// (selected tree, selected street light, repeat distances)
+    /// as well as the current user-selected options.
+    /// 
+    /// Saves and loads the data to/from the savegame.
+    /// Keys used for serialization:
+    /// - SegmentDataId for segment data
+    /// - SelectedOptionsId for selected options
+    /// 
+    /// This call also saves the currently selected network configuration
+    /// for newly placed network segments (EventSegmentCreate),
+    /// transfers data when segments are split (OnSegmentTransferData)
+    /// and removes the data when a segment is removed (EventSegmentRelease)
+    /// </summary>
     public class SegmentDataManager : SerializableDataExtensionBase
     {
         public class OptionsData : IDataContainer
@@ -86,6 +101,9 @@ namespace NetworkSkins.Data
         // this is an array field for high lookup performance
         public SegmentData[] SegmentToSegmentDataMap;
 
+
+        // Asset mode is enabled while the user is using the building tool. During that time,
+        // the configuration for networks is determined by the BuildingToolWatcher
         public void SetAssetMode(bool value) // TODO make property
         {
             _assetMode = value;

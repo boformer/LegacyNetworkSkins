@@ -5,6 +5,12 @@ using ICities;
 
 namespace NetworkSkins.Pillars
 {
+    /// <summary>
+    /// Modification of network pillars
+    /// The actual placement is handled by the game.
+    /// Asset creators can add their own pillars to the list of pillars by bundling a Pillar.xml
+    /// with their building asset (use existing pillar as template!)
+    /// </summary>
     public class PillarCustomizer : ILoadingExtension
     {
         public static PillarCustomizer instance;

@@ -1,13 +1,17 @@
 ﻿using System;
 using ColossalFramework;
 using ColossalFramework.IO;
-using NetworkSkins.Net;
 using UnityEngine;
 
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace NetworkSkins.Data
 {
+    /// <summary>
+    /// This class stores the configuration for one or multiple network segments (usage count saved in UsedCount)
+    /// It stores the selected tree(s), street light and the repeat distances of these props.
+    /// These configurations are stored in the save game!
+    /// </summary>
     public class SegmentData : IDataContainer
     {
         [Flags]
@@ -38,6 +42,10 @@ namespace NetworkSkins.Data
         public TreeInfo TreeRightPrefab;
         [NonSerialized]
         public PropInfo StreetLightPrefab;
+
+        /// <summary>
+        /// Usage count of this configuration
+        /// </summary>
         [NonSerialized]
         public int UsedCount = 0;
 

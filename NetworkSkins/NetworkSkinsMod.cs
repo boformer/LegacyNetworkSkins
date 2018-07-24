@@ -7,13 +7,12 @@ using NetworkSkins.Data;
 using NetworkSkins.Detour;
 using NetworkSkins.Net;
 using NetworkSkins.UI;
-using UnityEngine;
 
 namespace NetworkSkins
 {
     public class NetworkSkinsMod : LoadingExtensionBase, IUserMod
     {
-        private UINetworkSkinsPanel panel;
+        private UINetworkSkinsPanel _panel;
 
         public string Name => "Network Skins";
         public string Description => "Change the visual appearance of roads, train tracks and other networks";
@@ -30,21 +29,17 @@ namespace NetworkSkins
         {
             base.OnLevelLoaded(mode);
 
-            Debug.Log("Begin NetworkSkinsMod.OnLevelLoaded");
-
             SegmentDataManager.Instance.OnLevelLoaded();
 
             // Don't load if it's not a game
             if (!CheckLoadMode(mode)) return;
 
             // GUI
-            if (panel == null)
+            if (_panel == null)
             {
-                panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
+                _panel = UIView.GetAView().AddUIComponent(typeof(UINetworkSkinsPanel)) as UINetworkSkinsPanel;
             }
-            panel.isVisible = true;
-
-            Debug.Log("End NetworkSkinsMod.OnLevelLoaded");
+            _panel.isVisible = true;
         }
 
         public override void OnLevelUnloading()
@@ -53,9 +48,9 @@ namespace NetworkSkins
 
             SegmentDataManager.Instance.OnLevelUnloaded();
 
-            if (panel != null)
+            if (_panel != null)
             {
-                UnityEngine.Object.Destroy(panel);
+                UnityEngine.Object.Destroy(_panel);
             }
         }
 
@@ -99,7 +94,8 @@ namespace NetworkSkins
 
         public static bool CheckLoadMode(LoadMode mode) 
         {
-            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.LoadMap || mode == LoadMode.NewMap || mode == LoadMode.NewGameFromScenario;
+            return mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.NewGameFromScenario;
+            // TODO support map editor: || mode == LoadMode.LoadMap || mode == LoadMode.NewMap ||
         }
     }
 }

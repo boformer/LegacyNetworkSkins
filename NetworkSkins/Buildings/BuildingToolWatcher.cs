@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using ColossalFramework.IO;
 using ColossalFramework.Packaging;
@@ -13,13 +11,21 @@ using UnityEngine;
 
 namespace NetworkSkins.Buildings
 {
-    // TODO refactor (2 files)
+    /// <summary>
+    /// You can bundle a BuildingNetworkSkinsDef.xml file with a building to modify its networks.
+    /// That means when the building is placed, NetworkSkins applies the configured trees,
+    /// street lights and bridge pillars to the internal networks of the building.
+    /// 
+    /// To do that, a special "building mode" is enabled while the building tool is active.
+    /// Previous user settings are restored when the building tool is no longer in use.
+    /// </summary>
     public class BuildingToolWatcher : ThreadingExtensionBase
     {
         private const string NoneValue = "#None";
 
         internal static readonly Dictionary<BuildingInfo, BuildingNetworkSkinsDef.Building> _buildingDefsMap = new Dictionary<BuildingInfo, BuildingNetworkSkinsDef.Building>();
 
+        // Stores which pillar was selected for a particular network before the building was added
         private readonly Dictionary<NetInfo, BuildingInfo> _userModeBridgePillars = new Dictionary<NetInfo, BuildingInfo>();
         private readonly Dictionary<NetInfo, BuildingInfo> _userModeMiddlePillars = new Dictionary<NetInfo, BuildingInfo>();
 
@@ -33,15 +39,21 @@ namespace NetworkSkins.Buildings
 
             if (_selectedPrefab == newSelectedPrefab) return;
 
+            // If the user selected a building for placement, apply the configuration for the building
             if (newSelectedPrefab != null)
             {
+                // Instruct SDM to store settings in a separate map, so when asset mode is set to false again,
+                // NetworkSkins is able to reload user-selected settings
                 SegmentDataManager.Instance.SetAssetMode(true);
 
                 Revert();
                 Apply(newSelectedPrefab);
             }
+
+            // when the building tool is no longer in use, return to mode for normal networks
             else
             {
+                // Clear asset mode settings, return to user-selected settings
                 SegmentDataManager.Instance.SetAssetMode(false);
 
                 Revert();
@@ -52,6 +64,7 @@ namespace NetworkSkins.Buildings
 
         private void Revert()
         {
+            // restore bridge pillars for user-placed networks
             foreach (var entry in _userModeBridgePillars)
             {
                 PillarCustomizer.instance.SetPillar(entry.Key, PillarType.BridgePillar, entry.Value);
@@ -69,6 +82,7 @@ namespace NetworkSkins.Buildings
             BuildingNetworkSkinsDef.Building buildingDef;
             if (!_buildingDefsMap.TryGetValue(prefab, out buildingDef)) return;
 
+            // Apply config for networks which are placed with a building
             foreach (var networkDef in buildingDef.NetworkDefs)
             {
                 var netInfo = PrefabCollection<NetInfo>.FindLoaded(networkDef.Name);
@@ -76,6 +90,7 @@ namespace NetworkSkins.Buildings
 
                 var data = new SegmentData();
 
+                // Street lights
                 if (networkDef.StreetLight != null)
                 {
                     PropInfo streetLight = null;
@@ -83,13 +98,19 @@ namespace NetworkSkins.Buildings
                         streetLight = PrefabCollection<PropInfo>.FindLoaded(networkDef.StreetLight);
                     data.SetPrefabFeature(SegmentData.FeatureFlags.StreetLight, streetLight);
                 }
+
+                // Trees
                 SetTreeFeature(data, networkDef.TreeLeft, SegmentData.FeatureFlags.TreeLeft);
                 SetTreeFeature(data, networkDef.TreeMiddle, SegmentData.FeatureFlags.TreeMiddle);
                 SetTreeFeature(data, networkDef.TreeRight, SegmentData.FeatureFlags.TreeRight);
 
+                // Pillars
                 SetPillarFeature(netInfo, networkDef.BridgePillar, PillarType.BridgePillar, _userModeBridgePillars);
                 SetPillarFeature(netInfo, networkDef.MiddlePillar, PillarType.MiddlePillar, _userModeMiddlePillars);
 
+                // Apply options for asset mode (SetAssetMode was set to true before,
+                // so the SegmentDataManager stores these options in a separate map
+                // that is cleared when asset mode is left)
                 SegmentDataManager.Instance.SetActiveOptions(netInfo, data);
             }
         }
@@ -119,9 +140,11 @@ namespace NetworkSkins.Buildings
         }
     }
 
+    /// <summary>
+    /// Load building network configurations into memory
+    /// </summary>
     public class BuildingDefLoader : LoadingExtensionBase
     {
-
         public override void OnLevelLoaded(LoadMode mode)
         {
             base.OnLevelLoaded(mode);

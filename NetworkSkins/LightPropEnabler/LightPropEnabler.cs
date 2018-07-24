@@ -14,6 +14,11 @@ using UnityEngine;
 
 namespace NetworkSkins.LightPropEnabler
 {
+    /// <summary>
+    /// Adds light effects to props, using the bundled LightPropsDefinition.xml
+    /// This method is deprecated and just kept for compatibility,
+    /// saving props with light effects is now natively supported by the game!
+    /// </summary>
     public class LightPropEnabler : LoadingExtensionBase
     {
         public HashSet<string> lightPropsDefParseErrors;

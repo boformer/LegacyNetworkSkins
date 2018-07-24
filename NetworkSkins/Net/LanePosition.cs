@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace NetworkSkins.Net
 {
+    /// <summary>
+    /// Position of roadside trees
+    /// </summary>
     public enum LanePosition
     {
         Left,

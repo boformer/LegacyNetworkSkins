@@ -7,8 +7,13 @@ using UnityEngine;
 
 namespace NetworkSkins.Net
 {
+    /// <summary>
+    /// This detour hooks into the network creation/release code
+    /// and forwards these events to the SegmentDataManager
+    /// </summary>
     public class NetManagerDetour : NetManager
     {
+    
         public delegate void SegmentTransferDataEventHandler(ushort oldSegment, ushort newSegment);
         public static event SegmentTransferDataEventHandler EventSegmentTransferData;
 

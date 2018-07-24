@@ -3,6 +3,9 @@ using System.Xml.Serialization;
 
 namespace NetworkSkins.Buildings
 {
+    /// <summary>
+    /// BuildingNetworkSkinsDef.xml, see BuildingToolWatcher
+    /// </summary>
     public class BuildingNetworkSkinsDef
     {
         public List<Building> Buildings { get; set; }

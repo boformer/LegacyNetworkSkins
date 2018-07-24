@@ -3,6 +3,10 @@ using NetworkSkins.UI;
 
 namespace NetworkSkins.Pillars
 {
+    /// <summary>
+    /// Pillar Option for the NS user interface.
+    /// Selected option is sent to PillarCustomizer
+    /// </summary>
     public class UIPillarOption : UIDropDownOption
     {
         private List<BuildingInfo> availablePillars;
